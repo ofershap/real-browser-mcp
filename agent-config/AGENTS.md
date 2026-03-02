@@ -4,7 +4,7 @@
 
 This project has `real-browser-mcp` configured. Use it to interact with the user's real browser.
 
-The MCP server runs on `ws://localhost:9222` by default. The Chrome extension connects automatically.
+The MCP server runs on `ws://localhost:9224` by default. The Chrome extension connects automatically.
 
 ## Tools
 

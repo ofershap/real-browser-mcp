@@ -63,17 +63,11 @@ Agent: *takes snapshot of your open browser tab*
 
 ## Quick Start
 
-### Prerequisites
+You need two things: the MCP server (runs locally, talks to your AI agent) and the Chrome extension (lives in your browser, executes the commands).
 
-| What | Why |
-|------|-----|
-| Node.js 20+ | Runs the MCP server |
-| Chrome browser | Where the extension lives |
-| MCP-compatible client | Cursor, Claude Desktop, Windsurf, etc. |
+### Step 1: Add the MCP server to Cursor
 
-### 1. Install the MCP server
-
-Add to your MCP config (Cursor settings, Claude Desktop, etc.):
+Open Cursor Settings > MCP, click "Add new MCP server", and paste:
 
 ```json
 {
@@ -86,23 +80,34 @@ Add to your MCP config (Cursor settings, Claude Desktop, etc.):
 }
 ```
 
-### 2. Install the Chrome extension
+<details>
+<summary>Using Claude Desktop or Windsurf instead?</summary>
 
-1. Clone or download this repo
-2. Open `chrome://extensions` in Chrome
-3. Enable "Developer mode" (top right toggle)
-4. Click "Load unpacked" and select the `extension/` folder
-5. Extension icon shows green **ON** when connected
+**Claude Desktop:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) and add the same JSON above.
 
-### 3. Teach your agent
+**Windsurf:** Open Settings > MCP and add the server the same way as Cursor.
 
-Install the Cursor command so you can trigger browser checks instantly:
+Any MCP-compatible client works with the same config.
+
+</details>
+
+### Step 2: Install the Chrome extension
+
+1. Download or clone this repo: `git clone https://github.com/ofershap/real-browser-mcp.git`
+2. In Chrome, go to `chrome://extensions`
+3. Turn on **Developer mode** (toggle in the top right)
+4. Click **Load unpacked** and pick the `extension/` folder from the cloned repo
+5. You'll see the Real Browser MCP icon in your toolbar. Click it - the dot is green when connected, gray when waiting for the server
+
+That's it. Your agent can now see and control your browser.
+
+### Step 3 (optional): Install Cursor shortcuts
 
 ```bash
 npx real-browser-mcp --setup cursor
 ```
 
-Now type `/check-browser` in Cursor chat, or just tell your agent:
+This adds a `/check-browser` command to Cursor. Type it in chat anytime to have the agent look at your browser. Or just tell it naturally:
 
 > "Check the result in my browser"
 
@@ -204,7 +209,7 @@ The core difference: Playwright MCP and Chrome DevTools MCP create or attach to 
 ```mermaid
 flowchart LR
     A["AI Agent\n(Cursor, Claude)"] <-->|"stdio (MCP)"| B["MCP Server\n(Node.js)"]
-    B <-->|"WebSocket\nlocalhost:9222"| C["Chrome Extension\n(your real browser)"]
+    B <-->|"WebSocket\nlocalhost:9224"| C["Chrome Extension\n(your real browser)"]
 ```
 
 Everything stays on your machine. The Chrome extension connects via WebSocket on localhost. No cloud, no proxy, no data leaves your browser.
@@ -256,7 +261,7 @@ See [`agent-config/`](agent-config/) for manual installation and the browser aut
 
 | Env var | Default | Description |
 |---------|---------|-------------|
-| `WS_PORT` | `9222` | WebSocket port for extension connection |
+| `WS_PORT` | `9224` | WebSocket port for extension connection |
 
 <details>
 <summary><strong>Multiple browsers: control work and personal Chrome profiles simultaneously</strong></summary>

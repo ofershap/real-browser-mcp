@@ -19,7 +19,7 @@ import { allTools } from './tools/index.js';
 
 const WS_PORT = parseInt(process.env.WS_PORT || '7225', 10);
 const SERVER_NAME = 'real-browser-mcp';
-const SERVER_VERSION = '1.1.0';
+const SERVER_VERSION = '1.2.0';
 
 const bridge = new ExtensionBridge({ port: WS_PORT });
 

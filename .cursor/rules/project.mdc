@@ -24,15 +24,26 @@ Four files to touch:
 
 The schema type MUST be `z.ZodObject<z.ZodRawShape>`, not `z.ZodType`. The MCP SDK calls `.shape` on it.
 
-## Tool inventory (17 tools)
+## Tool inventory (18 tools)
 
 Navigation: browser_navigate, browser_tabs
-Interaction: browser_click (ref OR selector), browser_type, browser_press_key, browser_scroll, browser_hover, browser_select
+Interaction: browser_click (ref OR selector), browser_click_text (by visible text, CSP-safe), browser_type, browser_press_key, browser_scroll, browser_hover, browser_select
 Reading: browser_snapshot (compact mode default), browser_screenshot, browser_text, browser_find
-JS execution: browser_evaluate (arbitrary JS in page context - use for anything other tools can't do)
+JS execution: browser_evaluate (via chrome.debugger CDP - bypasses CSP but shows debugger banner)
 Dialogs: browser_handle_dialog (override alert/confirm/prompt)
 Wait: browser_wait
 Debug: browser_console (read-only), browser_network
+
+## CSP and browser_evaluate
+
+`browser_evaluate` uses chrome.debugger API (CDP Runtime.evaluate). This bypasses CSP but:
+- Shows "is being debugged" infobar
+- Attaching/detaching the debugger can steal focus and close open popups/dropdowns
+- Requires `debugger` permission in manifest.json
+
+For DOM interactions (clicking dropdown options, etc.), prefer `browser_click` with CSS selectors or `browser_click_text` instead. These use `chrome.scripting.executeScript` with compiled functions — no eval, no CSP issues.
+
+Previous attempts using `new Function()` in MAIN world failed on GitHub/Google/strict-CSP sites. Sandbox/offscreen approaches can't access page DOM. chrome.debugger is the only universal eval but has the focus-stealing side effect.
 
 ## Snapshot modes
 

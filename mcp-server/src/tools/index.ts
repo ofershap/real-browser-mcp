@@ -15,6 +15,7 @@ import { textTool } from './text.js';
 import { hoverTool } from './hover.js';
 import { selectTool } from './select.js';
 import { evaluateTool } from './evaluate.js';
+import { clickTextTool } from './click-text.js';
 import { dialogTool } from './dialog.js';
 
 export const allTools: ToolDefinition[] = [
@@ -34,6 +35,7 @@ export const allTools: ToolDefinition[] = [
   hoverTool,
   selectTool,
   evaluateTool,
+  clickTextTool,
   dialogTool,
 ];
 

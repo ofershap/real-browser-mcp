@@ -1,6 +1,6 @@
 ---
 description: Instructions for using Real Browser MCP to control the user's actual browser
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Real Browser MCP
@@ -12,8 +12,8 @@ MCP server: `user-real-browser-mcp`. Controls the user's REAL Chrome browser - n
 - NEVER close tabs you didn't create
 - NEVER navigate away from pages the user is working on without asking
 - Prefer `browser_snapshot` over `browser_screenshot` (cheaper, faster, parseable)
-- Snapshots return refs that break after navigation/scroll/DOM changes - always re-snapshot before using refs
-- Use `browser_evaluate` for anything the other tools can't do (dropdowns, modals, complex DOM)
+- Snapshots return refs that break after navigation/scroll/DOM changes - always re-snapshot before using stale refs
+- DO NOT default to `browser_evaluate` for UI interactions — it fails on strict-CSP sites (GitHub, Google, etc.)
 
 ## Tools
 
@@ -22,22 +22,23 @@ MCP server: `user-real-browser-mcp`. Controls the user's REAL Chrome browser - n
 - `browser_tabs` - List/create/close/focus tabs. Params: `action` (list|create|close|focus), `tabId`, `url`
 
 ### Interaction
-- `browser_click` - Click element. Params: `ref` OR `selector` (CSS), `button` (left|right|middle), `doubleClick`
+- `browser_click` - Click element by ref OR CSS selector. Params: `ref`, `selector`, `button` (left|right|middle), `doubleClick`
+- `browser_click_text` - Click element by visible text. CSP-safe. Best for dropdowns/menus. Params: `text`, `index` (0-based), `exact` (boolean)
 - `browser_type` - Type text. Params: `ref` OR `selector`, `text`, `clear`
 - `browser_press_key` - Keyboard. Params: `key`, `modifiers` (ctrl|alt|shift|meta), `ref`, `selector`
 - `browser_scroll` - Scroll. Params: `direction`, `amount`, `selector`, `toElement`, `position` (top|bottom)
 - `browser_hover` - Hover element. Params: `ref` OR `selector`
-- `browser_select` - Select from `<select>`. Params: `ref` OR `selector`, `value` OR `label` OR `index`
+- `browser_select` - Select from native `<select>`. Params: `ref` OR `selector`, `value` OR `label` OR `index`
 
 ### Reading
-- `browser_snapshot` - Accessibility tree with refs. Params: `selector`, `compact` (default true - interactive only, ~70% smaller)
+- `browser_snapshot` - Accessibility tree with refs. Params: `selector`
 - `browser_screenshot` - Capture visible tab as image. Params: `format` (png|jpeg), `quality`
-- `browser_text` - Get page text content. Params: `selector`, `maxLength`
+- `browser_text` - Get text content. Params: `selector`, `maxLength`
 - `browser_find` - Find elements by natural language. Params: `query`, `limit`
 
 ### JavaScript & Dialogs
-- `browser_evaluate` - Execute JS in page context, return result. Params: `expression` (supports async/await)
-- `browser_handle_dialog` - Handle alert/confirm/prompt. Call BEFORE triggering actions that may cause dialogs. Params: `action` (accept|dismiss), `promptText`
+- `browser_evaluate` - Execute JS via chrome.debugger CDP. Bypasses CSP but shows debugger banner and may close popups. Use as LAST RESORT only.
+- `browser_handle_dialog` - Handle alert/confirm/prompt. Call BEFORE triggering actions that cause dialogs. Params: `action` (accept|dismiss), `promptText`
 
 ### Waiting
 - `browser_wait` - Wait for element or delay. Params: `selector`, `state` (visible|hidden|attached), `timeout`, `delay`
@@ -46,18 +47,26 @@ MCP server: `user-real-browser-mcp`. Controls the user's REAL Chrome browser - n
 - `browser_console` - Read console messages (read-only). Params: `clear`
 - `browser_network` - Read network requests. Params: `filter` (regex), `clear`
 
+## React Dropdowns / Portals / Overlays (IMPORTANT)
+
+Snapshot refs DO NOT capture React portal overlays (rendered outside main DOM tree). DO NOT use `browser_evaluate` — it uses chrome.debugger which steals focus and closes the dropdown.
+
+Proven pattern that works on all sites including strict-CSP (GitHub, Google):
+
+1. `browser_click` on the trigger button (use ref from snapshot)
+2. `browser_wait` with `delay: 400` for the overlay to render
+3. `browser_text` with broad CSS selectors to confirm dropdown is open and read options:
+   `"selector": "[role=menu],[role=listbox],.ActionList,.SelectMenu-list,.Overlay,details-menu"`
+4. `browser_click` with a CSS selector targeting the desired child:
+   `"selector": ".ActionList li:first-child"` or use `browser_click_text` with the option text
+
+If `browser_click_text` is available, prefer it — it finds elements by visible text, picks the deepest DOM match, and is CSP-safe.
+
 ## Workflow
 
 1. `browser_snapshot` to see page structure and get element refs
-2. Use refs (e.g. "e12") with `browser_click`, `browser_type`, etc.
-3. For complex UI (React dropdowns, portals, overlays) - use `browser_evaluate` with JS
-4. After actions, snapshot again to verify result
+2. Use refs with `browser_click`, `browser_type`, etc.
+3. For dropdowns/menus: follow the pattern above (click trigger → wait → text → click child)
+4. After actions, re-snapshot or `browser_find` to verify result
 5. `browser_wait` before interacting with dynamically loaded content
-
-## React/SPA Tips
-
-- Custom dropdowns: use `browser_evaluate` to click options that don't appear in the accessibility tree
-- Virtual scroll containers: `browser_scroll` with `selector` targeting the scroll container
-- After scroll, re-snapshot - refs are invalidated
-- `browser_press_key` for keyboard shortcuts (Enter to submit, Escape to close modals)
-- `browser_handle_dialog` before actions that might trigger alert/confirm/prompt
+6. `browser_press_key` for keyboard shortcuts (Enter to submit, Escape to close modals)

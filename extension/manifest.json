@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Real Browser MCP",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Let AI agents control your real browser - your tabs, your sessions, your logins",
   "icons": {
     "16": "icons/icon16.png",
@@ -12,6 +12,7 @@
     "tabs",
     "activeTab",
     "scripting",
+    "debugger",
     "webRequest",
     "storage",
     "alarms"

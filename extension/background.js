@@ -219,6 +219,7 @@ async function dispatch(tool, params) {
     browser_hover: handleHover,
     browser_select: handleSelect,
     browser_evaluate: handleEvaluate,
+    browser_click_text: handleClickByText,
     browser_handle_dialog: handleDialog,
     find: handleFind,
     browser_find: handleFind,
@@ -759,34 +760,70 @@ async function handleEvaluate(params) {
   const { expression } = params;
   const tab = await getActiveTab();
 
-  return execInTab(tab.id, async (_expr) => {
-    try {
-      const fn = new Function('return (async () => { ' + _expr + ' })()');
-      const raw = await fn();
-
-      if (raw instanceof HTMLElement) {
-        return {
-          success: true,
-          result: {
-            tagName: raw.tagName,
-            id: raw.id,
-            className: raw.className,
-            textContent: raw.textContent?.slice(0, 500),
-            innerHTML: raw.innerHTML?.slice(0, 1000),
-          },
-        };
-      }
-
-      try {
-        JSON.stringify(raw);
-        return { success: true, result: raw };
-      } catch {
-        return { success: true, result: String(raw) };
-      }
-    } catch (err) {
-      return { success: false, error: err.message || String(err) };
+  await chrome.debugger.attach({ tabId: tab.id }, '1.3');
+  try {
+    const { result, exceptionDetails } = await chrome.debugger.sendCommand(
+      { tabId: tab.id },
+      'Runtime.evaluate',
+      { expression: `(async () => { ${expression} })()`, awaitPromise: true, returnByValue: true },
+    );
+    if (exceptionDetails) {
+      return { success: false, error: exceptionDetails.exception?.description || exceptionDetails.text };
     }
-  }, [expression]);
+    return { success: true, result: result.value };
+  } finally {
+    try { await chrome.debugger.detach({ tabId: tab.id }); } catch {}
+  }
+}
+
+async function handleClickByText(params) {
+  const { text, index = 0, exact = false } = params;
+  const tab = await getActiveTab();
+
+  return execInTab(tab.id, (_text, _index, _exact) => {
+    const textLower = _text.toLowerCase();
+    const candidates = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const s = getComputedStyle(node);
+      if (s.display === 'none' || s.visibility === 'hidden') continue;
+      const r = node.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+
+      const nodeText = (node.innerText || node.textContent || '').trim();
+      const firstLine = nodeText.split('\n')[0].trim();
+      const match = _exact
+        ? firstLine === _text
+        : firstLine.toLowerCase().includes(textLower);
+
+      if (match) {
+        candidates.push({ el: node, text: firstLine, depth: getDepth(node) });
+      }
+    }
+
+    function getDepth(el) { let d = 0; let p = el; while (p = p.parentElement) d++; return d; }
+
+    candidates.sort((a, b) => b.depth - a.depth);
+
+    if (candidates.length === 0) return { success: false, error: `No element found with text "${_text}"` };
+    if (_index >= candidates.length) return { success: false, error: `Only ${candidates.length} matches, index ${_index} out of range` };
+
+    const target = candidates[_index].el;
+    target.scrollIntoView({ behavior: 'instant', block: 'center' });
+    const rect = target.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const init = { bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0 };
+
+    target.dispatchEvent(new MouseEvent('mouseover', init));
+    target.dispatchEvent(new MouseEvent('mousedown', init));
+    if (target.focus) target.focus();
+    target.dispatchEvent(new MouseEvent('mouseup', init));
+    target.dispatchEvent(new MouseEvent('click', init));
+
+    return { success: true, clicked: candidates[_index].text, matchCount: candidates.length };
+  }, [text, index, exact]);
 }
 
 async function handleDialog(params) {

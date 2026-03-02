@@ -1,4 +1,5 @@
 import { WebSocket, WebSocketServer } from 'ws';
+import { execSync } from 'child_process';
 
 interface PendingRequest {
   resolve: (value: unknown) => void;
@@ -51,8 +52,40 @@ export class ExtensionBridge {
     this.defaultTimeoutMs = options.defaultTimeoutMs ?? 30_000;
   }
 
-  start(): Promise<void> {
-    return new Promise((resolve) => {
+  async start(): Promise<void> {
+    try {
+      await this.tryListen();
+    } catch (err: unknown) {
+      if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
+        console.error(`[Bridge] Port ${this.port} in use — killing stale process`);
+        this.killStaleProcess();
+        await new Promise(r => setTimeout(r, 500));
+        await this.tryListen();
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  private killStaleProcess(): void {
+    try {
+      const output = execSync(`lsof -ti :${this.port} -sTCP:LISTEN`, { encoding: 'utf8' }).trim();
+      if (output) {
+        for (const pid of output.split('\n')) {
+          const p = parseInt(pid, 10);
+          if (p && p !== process.pid) {
+            console.error(`[Bridge] Killing stale PID ${p}`);
+            process.kill(p, 'SIGTERM');
+          }
+        }
+      }
+    } catch {
+      // lsof returns exit 1 when no match — that's fine
+    }
+  }
+
+  private tryListen(): Promise<void> {
+    return new Promise((resolve, reject) => {
       this.wss = new WebSocketServer({ port: this.port, host: 'localhost' });
 
       this.wss.on('listening', () => {
@@ -107,6 +140,7 @@ export class ExtensionBridge {
 
       this.wss.on('error', (err: Error) => {
         console.error('[Bridge] Server error:', err.message);
+        reject(err);
       });
     });
   }

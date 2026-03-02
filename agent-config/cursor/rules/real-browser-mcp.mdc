@@ -5,33 +5,59 @@ alwaysApply: false
 
 # Real Browser MCP
 
-You have access to the user's real browser via the `real-browser-mcp` MCP server. This controls their actual Chrome browser with existing tabs, sessions, cookies, and logins.
+MCP server: `user-real-browser-mcp`. Controls the user's REAL Chrome browser - not headless. All sessions, logins, cookies are already active.
 
-## Key differences from Playwright/headless
+## Rules
 
-- This is NOT a new browser instance. It's the user's REAL browser they're already using.
-- All sessions and logins are already active. No need to authenticate.
-- Don't open tabs for sites the user is already logged into - ask them which tab to use or use `browser_tabs` to list existing ones.
-- NEVER close tabs you didn't create. The user has their own tabs open.
+- NEVER close tabs you didn't create
+- NEVER navigate away from pages the user is working on without asking
+- Prefer `browser_snapshot` over `browser_screenshot` (cheaper, faster, parseable)
+- Snapshots return refs that break after navigation/scroll/DOM changes - always re-snapshot before using refs
+- Use `browser_evaluate` for anything the other tools can't do (dropdowns, modals, complex DOM)
 
-## Available tools
+## Tools
 
-**Navigation:** `browser_navigate`, `browser_tabs`
-**Interaction:** `browser_click`, `browser_type`, `browser_press_key`, `browser_scroll`, `browser_hover`, `browser_select`
-**Reading:** `browser_snapshot`, `browser_screenshot`, `browser_text`, `browser_find`
-**Waiting:** `browser_wait`
-**Debug:** `browser_console`, `browser_network`
+### Navigation & Tabs
+- `browser_navigate` - Go to URL. Params: `url`, `waitUntil`
+- `browser_tabs` - List/create/close/focus tabs. Params: `action` (list|create|close|focus), `tabId`, `url`
 
-## Workflow pattern
+### Interaction
+- `browser_click` - Click element. Params: `ref` OR `selector` (CSS), `button` (left|right|middle), `doubleClick`
+- `browser_type` - Type text. Params: `ref` OR `selector`, `text`, `clear`
+- `browser_press_key` - Keyboard. Params: `key`, `modifiers` (ctrl|alt|shift|meta), `ref`, `selector`
+- `browser_scroll` - Scroll. Params: `direction`, `amount`, `selector`, `toElement`, `position` (top|bottom)
+- `browser_hover` - Hover element. Params: `ref` OR `selector`
+- `browser_select` - Select from `<select>`. Params: `ref` OR `selector`, `value` OR `label` OR `index`
 
-1. Use `browser_snapshot` to see the page structure and get element refs
-2. Use refs (e.g. "e12") with `browser_click`, `browser_type` etc.
-3. After actions, take another snapshot to verify the result
-4. Use `browser_wait` before interacting with dynamically loaded content
+### Reading
+- `browser_snapshot` - Accessibility tree with refs. Params: `selector`, `compact` (default true - interactive only, ~70% smaller)
+- `browser_screenshot` - Capture visible tab as image. Params: `format` (png|jpeg), `quality`
+- `browser_text` - Get page text content. Params: `selector`, `maxLength`
+- `browser_find` - Find elements by natural language. Params: `query`, `limit`
 
-## Tips for social media / SPAs
+### JavaScript & Dialogs
+- `browser_evaluate` - Execute JS in page context, return result. Params: `expression` (supports async/await)
+- `browser_handle_dialog` - Handle alert/confirm/prompt. Call BEFORE triggering actions that may cause dialogs. Params: `action` (accept|dismiss), `promptText`
 
-- Use `browser_scroll` with a `selector` for virtual scroll containers (Twitter, Reddit feeds)
-- After scrolling, take a new snapshot - refs change when new content loads
-- Use `browser_press_key` for keyboard shortcuts (Enter to post, Escape to close)
-- Use `browser_wait` with a selector before interacting with lazy-loaded elements
+### Waiting
+- `browser_wait` - Wait for element or delay. Params: `selector`, `state` (visible|hidden|attached), `timeout`, `delay`
+
+### Debug
+- `browser_console` - Read console messages (read-only). Params: `clear`
+- `browser_network` - Read network requests. Params: `filter` (regex), `clear`
+
+## Workflow
+
+1. `browser_snapshot` to see page structure and get element refs
+2. Use refs (e.g. "e12") with `browser_click`, `browser_type`, etc.
+3. For complex UI (React dropdowns, portals, overlays) - use `browser_evaluate` with JS
+4. After actions, snapshot again to verify result
+5. `browser_wait` before interacting with dynamically loaded content
+
+## React/SPA Tips
+
+- Custom dropdowns: use `browser_evaluate` to click options that don't appear in the accessibility tree
+- Virtual scroll containers: `browser_scroll` with `selector` targeting the scroll container
+- After scroll, re-snapshot - refs are invalidated
+- `browser_press_key` for keyboard shortcuts (Enter to submit, Escape to close modals)
+- `browser_handle_dialog` before actions that might trigger alert/confirm/prompt

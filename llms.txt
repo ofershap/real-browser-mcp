@@ -10,11 +10,13 @@ real-browser-mcp is a Model Context Protocol (MCP) server paired with a Chrome e
 
 Unlike Playwright MCP or Chrome DevTools MCP, which launch or attach to a separate browser, real-browser-mcp controls the browser the user is already using. For projects with authentication, complex state, or corporate SSO, this means no re-login, no session setup, no cookie recreation.
 
-## Tools (15 total)
+## Tools (17 total)
 
 Navigation: browser_navigate, browser_tabs
 Interaction: browser_click, browser_type, browser_press_key, browser_scroll, browser_hover, browser_select, browser_wait
-Reading: browser_snapshot, browser_screenshot, browser_text, browser_find
+Reading: browser_snapshot (compact mode default - interactive elements only), browser_screenshot, browser_text, browser_find
+JavaScript: browser_evaluate (execute arbitrary JS in page context, supports async/await)
+Dialogs: browser_handle_dialog (handle alert/confirm/prompt)
 Debugging: browser_console, browser_network
 
 ## Architecture

@@ -14,6 +14,8 @@ import { findTool } from './find.js';
 import { textTool } from './text.js';
 import { hoverTool } from './hover.js';
 import { selectTool } from './select.js';
+import { evaluateTool } from './evaluate.js';
+import { dialogTool } from './dialog.js';
 
 export const allTools: ToolDefinition[] = [
   navigateTool,
@@ -31,6 +33,8 @@ export const allTools: ToolDefinition[] = [
   textTool,
   hoverTool,
   selectTool,
+  evaluateTool,
+  dialogTool,
 ];
 
 export const toolMap = new Map<string, ToolDefinition>(

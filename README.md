@@ -65,9 +65,13 @@ Agent: *takes snapshot of your open browser tab*
 
 You need two things: the MCP server (runs locally, talks to your AI agent) and the Chrome extension (lives in your browser, executes the commands).
 
-### Step 1: Add the MCP server to Cursor
+### Step 1: Add the MCP server
 
-Open Cursor Settings > MCP, click "Add new MCP server", and paste:
+**Cursor (one click):**
+
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor" height="32" />](cursor://anysphere.cursor-deeplink/mcp/install?name=real-browser&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInJlYWwtYnJvd3Nlci1tY3AiXX0=)
+
+Or add manually: open Cursor Settings > MCP > "Add new MCP server" and paste:
 
 ```json
 {
@@ -81,9 +85,9 @@ Open Cursor Settings > MCP, click "Add new MCP server", and paste:
 ```
 
 <details>
-<summary>Using Claude Desktop or Windsurf instead?</summary>
+<summary>Claude Desktop, Windsurf, or other MCP clients</summary>
 
-**Claude Desktop:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) and add the same JSON above.
+**Claude Desktop:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) and add the same JSON block above.
 
 **Windsurf:** Open Settings > MCP and add the server the same way as Cursor.
 

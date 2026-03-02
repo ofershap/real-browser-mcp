@@ -17,7 +17,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ExtensionBridge } from './bridge.js';
 import { allTools } from './tools/index.js';
 
-const WS_PORT = parseInt(process.env.WS_PORT || '9224', 10);
+const WS_PORT = parseInt(process.env.WS_PORT || '7225', 10);
 const SERVER_NAME = 'real-browser-mcp';
 const SERVER_VERSION = '0.1.0';
 

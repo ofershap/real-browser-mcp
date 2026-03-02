@@ -209,7 +209,7 @@ The core difference: Playwright MCP and Chrome DevTools MCP create or attach to 
 ```mermaid
 flowchart LR
     A["AI Agent\n(Cursor, Claude)"] <-->|"stdio (MCP)"| B["MCP Server\n(Node.js)"]
-    B <-->|"WebSocket\nlocalhost:9224"| C["Chrome Extension\n(your real browser)"]
+    B <-->|"WebSocket\nlocalhost:7225"| C["Chrome Extension\n(your real browser)"]
 ```
 
 Everything stays on your machine. The Chrome extension connects via WebSocket on localhost. No cloud, no proxy, no data leaves your browser.
@@ -261,7 +261,7 @@ See [`agent-config/`](agent-config/) for manual installation and the browser aut
 
 | Env var | Default | Description |
 |---------|---------|-------------|
-| `WS_PORT` | `9224` | WebSocket port for extension connection |
+| `WS_PORT` | `7225` | WebSocket port for extension connection |
 
 <details>
 <summary><strong>Multiple browsers: control work and personal Chrome profiles simultaneously</strong></summary>

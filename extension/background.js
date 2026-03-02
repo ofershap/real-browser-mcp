@@ -1,4 +1,4 @@
-const DEFAULT_WS_PORT = 9224;
+const DEFAULT_WS_PORT = 7225;
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 const KEEPALIVE_ALARM = 'keepalive';

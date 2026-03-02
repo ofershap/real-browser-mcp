@@ -1,15 +1,20 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Real Browser MCP - MCP server and Chrome extension that lets AI agents control your real browser with existing sessions, cookies, and logins" width="100" height="100" />
+  <img src="assets/logo.png" alt="Real Browser MCP" width="100" height="100" />
 </p>
 
 <h1 align="center">real-browser-mcp</h1>
 
 <p align="center">
-  MCP server + Chrome extension that gives AI agents control of your real browser. Not a headless copy, not a new instance - your actual browser with all tabs, sessions, cookies, and logins intact. 15 browser automation tools for Cursor, Claude, Windsurf, and any MCP client.
+  <strong>Your AI agent builds features all day but can't see a single one of them. This fixes that.</strong>
 </p>
 
 <p align="center">
-  <strong>Your AI agent builds features all day but can't see a single one of them. This fixes that.</strong>
+  <a href="https://github.com/ofershap/real-browser-mcp/actions/workflows/ci.yml"><img src="https://github.com/ofershap/real-browser-mcp/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/v/real-browser-mcp.svg" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/dm/real-browser-mcp.svg" alt="npm downloads" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
+  <a href="https://chromewebstore.google.com/"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
 </p>
 
 <p align="center">
@@ -22,32 +27,17 @@
   <a href="#agent-config"><img src="https://img.shields.io/badge/Agent_Config-grey?style=for-the-badge" alt="Agent Config" /></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/ofershap/real-browser-mcp/actions/workflows/ci.yml"><img src="https://github.com/ofershap/real-browser-mcp/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/v/real-browser-mcp.svg" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/dm/real-browser-mcp.svg" alt="npm downloads" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
-  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
-  <a href="https://chromewebstore.google.com/"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
-</p>
-
-An MCP server and Chrome extension for browser automation that works with your real browser - not a headless instance. Your AI coding agent (Cursor, Claude, Windsurf) gets 17 tools to navigate, click, type, scroll, execute JavaScript, handle dialogs, screenshot, and read pages in the browser you already have open, with all your sessions and logins intact.
-
 ---
 
-## Your Agent Is Blind
+## Have you ever tested what your agent actually built?
 
-You're deep in a project. Auth, dashboards, nested modals, role-based views. You ask your AI agent to fix a button three layers inside the settings page.
+Your agent writes code, runs tests, commits. Then says: "Done! Can you verify it looks correct?"
 
-It fixes the code. Maybe it even writes a test. Then it says: "Done! Can you verify it looks correct?"
+So you switch to the browser. Log in. Navigate three levels deep. Click around. Find out the padding is wrong. Back to the agent. Another fix. Another "please verify." You are the agent's eyes and legs.
 
-You switch to the browser, log in, navigate to settings, open the right panel, scroll down, click the thing - just to find out the padding is wrong. Back to the agent. Another fix. Another "please verify." You are the agent's eyes and legs.
+The missing piece in AI coding isn't writing code or running tests — it's verifying the result in the browser. Your agent literally cannot see what it built.
 
-That's the missing piece in every AI coding workflow. Not the coding. Not the testing. The agent literally cannot see what it built.
-
-I built this because I got tired of being my agent's eyes. At work we have auth, complex state, deeply nested pages. Every time the agent changed something, I had to manually verify it. Playwright MCP and Chrome DevTools MCP launch a fresh browser from scratch - no cookies, no sessions. In a real project with auth, that's useless. You won't walk your agent through an entire login flow just to verify a CSS change.
-
-Real Browser MCP connects to the browser you already have open. Already logged in. Already on the right page.
+That's what this project solves. An MCP server + Chrome extension that connects your agent to the browser you already have open — already logged in, already on the right page, with all your sessions and cookies intact. Not a headless copy. Not a fresh Playwright instance where you'd need to replay your entire auth flow. Your actual browser.
 
 ```
 You: "Check if the save button works on the settings page"

@@ -1,0 +1,4 @@
+node_modules/
+mcp-server/dist/
+*.tsbuildinfo
+.DS_Store

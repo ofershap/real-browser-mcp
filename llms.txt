@@ -1,0 +1,35 @@
+# real-browser-mcp
+
+> MCP server + Chrome extension that gives AI agents control of your real browser with existing sessions and logins.
+
+## What it does
+
+real-browser-mcp is a Model Context Protocol (MCP) server paired with a Chrome extension. It lets AI coding agents (Cursor, Claude, Windsurf, and any MCP client) interact with the user's actual browser - not a headless copy, not a new instance. The browser the user already has open, with their tabs, cookies, sessions, and logins intact.
+
+## Key differentiator
+
+Unlike Playwright MCP or Chrome DevTools MCP, which launch or attach to a separate browser, real-browser-mcp controls the browser the user is already using. For projects with authentication, complex state, or corporate SSO, this means no re-login, no session setup, no cookie recreation.
+
+## Tools (15 total)
+
+Navigation: browser_navigate, browser_tabs
+Interaction: browser_click, browser_type, browser_press_key, browser_scroll, browser_hover, browser_select, browser_wait
+Reading: browser_snapshot, browser_screenshot, browser_text, browser_find
+Debugging: browser_console, browser_network
+
+## Architecture
+
+- MCP server: Node.js/TypeScript, communicates with AI agent via stdio
+- Chrome extension: Manifest V3, communicates with MCP server via WebSocket on localhost
+- All communication is local. No cloud, no telemetry, no data exfiltration.
+
+## Install
+
+npm: npx real-browser-mcp
+Chrome extension: Load unpacked from the extension/ directory
+
+## Links
+
+- Repository: https://github.com/ofershap/real-browser-mcp
+- npm: https://www.npmjs.com/package/real-browser-mcp
+- License: MIT

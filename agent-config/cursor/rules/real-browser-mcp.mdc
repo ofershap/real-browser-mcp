@@ -1,0 +1,37 @@
+---
+description: Instructions for using Real Browser MCP to control the user's actual browser
+alwaysApply: false
+---
+
+# Real Browser MCP
+
+You have access to the user's real browser via the `real-browser-mcp` MCP server. This controls their actual Chrome browser with existing tabs, sessions, cookies, and logins.
+
+## Key differences from Playwright/headless
+
+- This is NOT a new browser instance. It's the user's REAL browser they're already using.
+- All sessions and logins are already active. No need to authenticate.
+- Don't open tabs for sites the user is already logged into - ask them which tab to use or use `browser_tabs` to list existing ones.
+- NEVER close tabs you didn't create. The user has their own tabs open.
+
+## Available tools
+
+**Navigation:** `browser_navigate`, `browser_tabs`
+**Interaction:** `browser_click`, `browser_type`, `browser_press_key`, `browser_scroll`, `browser_hover`, `browser_select`
+**Reading:** `browser_snapshot`, `browser_screenshot`, `browser_text`, `browser_find`
+**Waiting:** `browser_wait`
+**Debug:** `browser_console`, `browser_network`
+
+## Workflow pattern
+
+1. Use `browser_snapshot` to see the page structure and get element refs
+2. Use refs (e.g. "e12") with `browser_click`, `browser_type` etc.
+3. After actions, take another snapshot to verify the result
+4. Use `browser_wait` before interacting with dynamically loaded content
+
+## Tips for social media / SPAs
+
+- Use `browser_scroll` with a `selector` for virtual scroll containers (Twitter, Reddit feeds)
+- After scrolling, take a new snapshot - refs change when new content loads
+- Use `browser_press_key` for keyboard shortcuts (Enter to post, Escape to close)
+- Use `browser_wait` with a selector before interacting with lazy-loaded elements

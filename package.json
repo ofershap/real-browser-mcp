@@ -1,0 +1,74 @@
+{
+  "name": "real-browser-mcp",
+  "version": "0.1.0",
+  "description": "MCP server + Chrome extension that gives AI agents control of your real browser with existing sessions and logins",
+  "type": "module",
+  "bin": {
+    "real-browser-mcp": "mcp-server/dist/index.js"
+  },
+  "main": "mcp-server/dist/index.js",
+  "scripts": {
+    "build": "tsc -p mcp-server/tsconfig.json",
+    "dev": "tsc -p mcp-server/tsconfig.json --watch",
+    "start": "node mcp-server/dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p mcp-server/tsconfig.json --noEmit",
+    "lint": "eslint mcp-server/src/",
+    "format": "prettier --write 'mcp-server/src/**/*.ts' 'tests/**/*.ts'",
+    "setup:cursor": "node agent-config/setup.mjs cursor",
+    "setup:claude": "node agent-config/setup.mjs claude"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "browser",
+    "browser-automation",
+    "browser-control",
+    "browser-use",
+    "chrome",
+    "chrome-extension",
+    "web-automation",
+    "real-browser",
+    "live-browser",
+    "model-context-protocol",
+    "ai-agent",
+    "ai-coding",
+    "cursor",
+    "claude",
+    "windsurf",
+    "playwright-alternative",
+    "devtools"
+  ],
+  "author": "Ofer Shapira",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ofershap/real-browser-mcp.git"
+  },
+  "homepage": "https://github.com/ofershap/real-browser-mcp",
+  "bugs": {
+    "url": "https://github.com/ofershap/real-browser-mcp/issues"
+  },
+  "files": [
+    "mcp-server/dist/",
+    "extension/",
+    "agent-config/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "ws": "^8.18.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

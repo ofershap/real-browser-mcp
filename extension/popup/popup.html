@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 280px;
+      font: 13px/1.5 system-ui, -apple-system, sans-serif;
+      background: #0f0f0f;
+      color: #e4e4e7;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.on { background: #22c55e; box-shadow: 0 0 6px #22c55e80; }
+    .dot.off { background: #6b7280; }
+    .status {
+      font-size: 12px;
+      color: #a1a1aa;
+      margin-bottom: 12px;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      color: #71717a;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input {
+      width: 100%;
+      background: #1c1c1e;
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      color: #e4e4e7;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: #667eea;
+    }
+    .info {
+      font-size: 11px;
+      color: #52525b;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+    a { color: #667eea; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="dot" id="dot"></div>
+    <h1>Real Browser MCP</h1>
+  </div>
+  <div class="status" id="status">Checking...</div>
+
+  <div class="field">
+    <label>WebSocket Port</label>
+    <input type="number" id="port" value="9222" min="1" max="65535">
+  </div>
+
+  <div class="info">
+    <a href="https://github.com/ofershap/real-browser-mcp" target="_blank">Documentation</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

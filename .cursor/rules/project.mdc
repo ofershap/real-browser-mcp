@@ -19,10 +19,25 @@ Bump minor versions: 1.0.0 -> 1.1.0 -> 1.2.0. Three places must stay in sync:
 Four files to touch:
 1. `mcp-server/src/tools/<name>.ts` - ToolDefinition with Zod schema
 2. `mcp-server/src/tools/index.ts` - add to allTools array
-3. `extension/background.js` - add handler in dispatch() map
+3. `extension/background.js` - add handler in dispatch() map + handler function
 4. `tests/tools/` - add test
 
 The schema type MUST be `z.ZodObject<z.ZodRawShape>`, not `z.ZodType`. The MCP SDK calls `.shape` on it.
+
+## Tool inventory (17 tools)
+
+Navigation: browser_navigate, browser_tabs
+Interaction: browser_click (ref OR selector), browser_type, browser_press_key, browser_scroll, browser_hover, browser_select
+Reading: browser_snapshot (compact mode default), browser_screenshot, browser_text, browser_find
+JS execution: browser_evaluate (arbitrary JS in page context - use for anything other tools can't do)
+Dialogs: browser_handle_dialog (override alert/confirm/prompt)
+Wait: browser_wait
+Debug: browser_console (read-only), browser_network
+
+## Snapshot modes
+
+`compact: true` (default) - returns only interactive elements + landmarks, ~70% smaller output. No `tag` field.
+`compact: false` - full accessibility tree with all visible elements. Includes `tag` for generic roles.
 
 ## Extension is plain JS
 

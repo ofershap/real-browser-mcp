@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { allTools, toolMap } from '../../mcp-server/src/tools/index.js';
 
 describe('Tool Registry', () => {
-  it('has 15 tools registered', () => {
-    expect(allTools.length).toBe(15);
+  it('has 17 tools registered', () => {
+    expect(allTools.length).toBe(17);
   });
 
   it('all tools have unique names', () => {
@@ -31,7 +31,8 @@ describe('Tool Registry', () => {
     'browser_navigate', 'browser_click', 'browser_type', 'browser_scroll',
     'browser_press_key', 'browser_wait', 'browser_snapshot', 'browser_screenshot',
     'browser_console', 'browser_network', 'browser_tabs', 'browser_find',
-    'browser_text', 'browser_hover', 'browser_select',
+    'browser_text', 'browser_hover', 'browser_select', 'browser_evaluate',
+    'browser_handle_dialog',
   ];
 
   for (const name of expectedTools) {

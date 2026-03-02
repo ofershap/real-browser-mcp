@@ -31,7 +31,7 @@
   <a href="https://chromewebstore.google.com/"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
 </p>
 
-An MCP server and Chrome extension for browser automation that works with your real browser - not a headless instance. Your AI coding agent (Cursor, Claude, Windsurf) gets 15 tools to navigate, click, type, scroll, screenshot, and read pages in the browser you already have open, with all your sessions and logins intact.
+An MCP server and Chrome extension for browser automation that works with your real browser - not a headless instance. Your AI coding agent (Cursor, Claude, Windsurf) gets 17 tools to navigate, click, type, scroll, execute JavaScript, handle dialogs, screenshot, and read pages in the browser you already have open, with all your sessions and logins intact.
 
 ---
 
@@ -155,7 +155,7 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 
 ## Tools
 
-15 tools organized by what they do.
+17 tools organized by what they do.
 
 ### Navigation & Tabs
 
@@ -173,17 +173,24 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 | `browser_press_key` | Press keys and combos (Enter, Escape, Ctrl+A) |
 | `browser_scroll` | Scroll pages and virtual scroll containers |
 | `browser_hover` | Trigger tooltips and dropdown menus |
-| `browser_select` | Pick options from dropdowns |
+| `browser_select` | Pick options from native `<select>` dropdowns |
 | `browser_wait` | Wait for elements to appear or disappear |
 
 ### Reading
 
 | Tool | Description |
 |------|-------------|
-| `browser_snapshot` | Accessibility tree with refs for interaction |
+| `browser_snapshot` | Accessibility tree with refs - compact mode (default) returns only interactive elements, ~70% smaller |
 | `browser_screenshot` | Capture what's visible on screen |
 | `browser_text` | Extract raw text from page or element |
 | `browser_find` | Find elements by natural language description |
+
+### JavaScript & Dialogs
+
+| Tool | Description |
+|------|-------------|
+| `browser_evaluate` | Execute JavaScript in the page context and return the result - use for anything other tools can't handle (React portals, custom dropdowns, complex DOM operations) |
+| `browser_handle_dialog` | Handle alert/confirm/prompt dialogs - call before actions that might trigger them |
 
 ### Debugging
 

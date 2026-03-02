@@ -16,6 +16,7 @@ let consoleMessages = [];
 let networkRequests = [];
 let currentActivity = null;
 let activeTabId = null;
+let pendingDialog = null;
 
 // --- Connection Management ---
 
@@ -217,6 +218,8 @@ async function dispatch(tool, params) {
     browser_tabs: handleTabs,
     browser_hover: handleHover,
     browser_select: handleSelect,
+    browser_evaluate: handleEvaluate,
+    browser_handle_dialog: handleDialog,
     find: handleFind,
     browser_find: handleFind,
     get_page_text: handleGetPageText,
@@ -489,13 +492,12 @@ async function handleSelect(params) {
 }
 
 async function handleSnapshot(params) {
-  const { selector } = params;
+  const { selector, compact = true } = params;
   const tab = await getActiveTab();
-  const args = selector === undefined ? [] : [selector];
 
-  return execInTab(tab.id, (_sel) => {
+  return execInTab(tab.id, (_sel, _compact) => {
     let refCount = 0;
-    const skipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'PATH']);
+    const skipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'PATH', 'BR', 'HR', 'WBR', 'META', 'LINK']);
 
     function vis(el) {
       const s = getComputedStyle(el);
@@ -522,42 +524,87 @@ async function handleSnapshot(params) {
       return map[el.tagName] || 'generic';
     }
 
-    function name(el) {
-      return (
+    function elName(el) {
+      const raw = (
         el.getAttribute('aria-label') || el.getAttribute('alt') ||
         el.getAttribute('title') || el.getAttribute('placeholder') ||
-        el.innerText?.slice(0, 100) || ''
+        ''
       ).trim();
+      if (raw) return raw.slice(0, 80);
+      const text = el.innerText;
+      if (!text) return '';
+      const first = text.split('\n')[0].trim();
+      return first.slice(0, 80);
     }
 
-    function interactive(el) {
+    function isInteractive(el) {
       const tags = ['A','BUTTON','INPUT','SELECT','TEXTAREA'];
-      return tags.includes(el.tagName) || el.onclick || getComputedStyle(el).cursor === 'pointer' ||
-        el.getAttribute('tabindex') !== null;
+      return tags.includes(el.tagName) || el.onclick || el.getAttribute('tabindex') !== null ||
+        el.getAttribute('role') === 'button' || el.getAttribute('role') === 'link' ||
+        el.getAttribute('role') === 'tab' || el.getAttribute('role') === 'menuitem' ||
+        el.getAttribute('role') === 'option' || el.getAttribute('role') === 'switch' ||
+        el.getAttribute('contenteditable') === 'true';
     }
 
-    function build(el, depth) {
+    const landmarkRoles = new Set(['navigation','main','banner','contentinfo','form','search','complementary','region']);
+
+    function buildCompact(el) {
+      if (!el || el.nodeType !== 1) return null;
+      if (skipTags.has(el.tagName)) return null;
+      if (!vis(el)) return null;
+
+      const ia = isInteractive(el);
+      const r = role(el);
+      const isLandmark = landmarkRoles.has(r);
+
+      const kids = [];
+      for (const c of el.children) {
+        const cn = buildCompact(c);
+        if (cn) Array.isArray(cn) ? kids.push(...cn) : kids.push(cn);
+      }
+
+      if (!ia && !isLandmark && r !== 'heading') {
+        return kids.length === 0 ? null : kids.length === 1 ? kids[0] : kids;
+      }
+
+      const ref = `e${refCount++}`;
+      el.setAttribute('data-mcp-ref', ref);
+      const n = elName(el);
+
+      const node = { ref, role: r };
+      if (n) node.name = n;
+      if (el.value !== undefined && el.value !== '') node.value = String(el.value);
+      if (el.checked !== undefined) node.checked = el.checked;
+      if (el.disabled) node.disabled = true;
+      if (el.href && el.tagName === 'A') node.href = el.href;
+      if (kids.length) node.children = kids;
+
+      return node;
+    }
+
+    function buildFull(el, depth) {
       if (!el || el.nodeType !== 1) return null;
       if (skipTags.has(el.tagName)) return null;
       if (!vis(el)) return null;
 
       const r = role(el);
-      const n = name(el);
-      const ia = interactive(el);
+      const n = elName(el);
+      const ia = isInteractive(el);
 
-      if (r === 'generic' && !n && !ia && depth > 2) {
+      if (r === 'generic' && !n && !ia && depth > 1) {
         const kids = [];
         for (const c of el.children) {
-          const cn = build(c, depth + 1);
+          const cn = buildFull(c, depth + 1);
           if (cn) Array.isArray(cn) ? kids.push(...cn) : kids.push(cn);
         }
-        return kids.length === 1 ? kids[0] : kids.length > 1 ? kids : null;
+        return kids.length === 0 ? null : kids.length === 1 ? kids[0] : kids;
       }
 
       const ref = `e${refCount++}`;
       el.setAttribute('data-mcp-ref', ref);
 
-      const node = { ref, role: r, tag: el.tagName.toLowerCase() };
+      const node = { ref, role: r };
+      if (r === 'generic') node.tag = el.tagName.toLowerCase();
       if (n) node.name = n;
       if (el.value !== undefined && el.value !== '') node.value = String(el.value);
       if (el.checked !== undefined) node.checked = el.checked;
@@ -566,7 +613,7 @@ async function handleSnapshot(params) {
 
       const kids = [];
       for (const c of el.children) {
-        const cn = build(c, depth + 1);
+        const cn = buildFull(c, depth + 1);
         if (cn) Array.isArray(cn) ? kids.push(...cn) : kids.push(cn);
       }
       if (kids.length) node.children = kids;
@@ -577,13 +624,15 @@ async function handleSnapshot(params) {
     const root = _sel ? document.querySelector(_sel) : document.body;
     if (!root) return { success: false, error: 'Root element not found' };
 
+    const tree = _compact ? buildCompact(root) : buildFull(root, 0);
     return {
       success: true,
       url: location.href,
       title: document.title,
-      tree: build(root, 0),
+      compact: _compact,
+      tree,
     };
-  }, args);
+  }, [selector, compact]);
 }
 
 async function handleScreenshot(params) {
@@ -704,6 +753,95 @@ async function handleGetPageText(params) {
 
     return { success: true, url: location.href, title: document.title, text, length: text.length, truncated };
   }, args);
+}
+
+async function handleEvaluate(params) {
+  const { expression } = params;
+  const tab = await getActiveTab();
+
+  return execInTab(tab.id, async (_expr) => {
+    try {
+      const fn = new Function('return (async () => { ' + _expr + ' })()');
+      const raw = await fn();
+
+      if (raw instanceof HTMLElement) {
+        return {
+          success: true,
+          result: {
+            tagName: raw.tagName,
+            id: raw.id,
+            className: raw.className,
+            textContent: raw.textContent?.slice(0, 500),
+            innerHTML: raw.innerHTML?.slice(0, 1000),
+          },
+        };
+      }
+
+      try {
+        JSON.stringify(raw);
+        return { success: true, result: raw };
+      } catch {
+        return { success: true, result: String(raw) };
+      }
+    } catch (err) {
+      return { success: false, error: err.message || String(err) };
+    }
+  }, [expression]);
+}
+
+async function handleDialog(params) {
+  const { action = 'accept', promptText } = params;
+  const tab = await getActiveTab();
+
+  return execInTab(tab.id, (_action, _promptText) => {
+    window.__mcpDialogLog = window.__mcpDialogLog || [];
+    window.__mcpDialogAction = _action;
+    window.__mcpDialogPromptText = _promptText || '';
+
+    if (!window.__mcpDialogOverrides) {
+      window.__mcpDialogOverrides = true;
+
+      window.alert = function (msg) {
+        window.__mcpDialogLog.push({
+          type: 'alert',
+          message: String(msg),
+          timestamp: Date.now(),
+          handled: window.__mcpDialogAction,
+        });
+      };
+
+      window.confirm = function (msg) {
+        const accepted = window.__mcpDialogAction === 'accept';
+        window.__mcpDialogLog.push({
+          type: 'confirm',
+          message: String(msg),
+          timestamp: Date.now(),
+          result: accepted,
+        });
+        return accepted;
+      };
+
+      window.prompt = function (msg, def) {
+        const accepted = window.__mcpDialogAction === 'accept';
+        const text = accepted ? (window.__mcpDialogPromptText || def || '') : null;
+        window.__mcpDialogLog.push({
+          type: 'prompt',
+          message: String(msg),
+          timestamp: Date.now(),
+          result: text,
+        });
+        return accepted ? text : null;
+      };
+    }
+
+    const log = [...window.__mcpDialogLog];
+    window.__mcpDialogLog = [];
+    return {
+      success: true,
+      dialogs: log,
+      message: log.length ? 'Retrieved dialog history' : 'Overrides configured',
+    };
+  }, [action, promptText]);
 }
 
 // --- Events ---

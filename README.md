@@ -14,7 +14,7 @@
   <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/dm/real-browser-mcp.svg" alt="npm downloads" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
-  <a href="https://chromewebstore.google.com/"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
+  <a href="https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
 </p>
 
 <p align="center">
@@ -87,11 +87,17 @@ Any MCP-compatible client works with the same config.
 
 ### Step 2: Install the Chrome extension
 
-1. Download or clone this repo: `git clone https://github.com/ofershap/real-browser-mcp.git`
-2. In Chrome, go to `chrome://extensions`
-3. Turn on **Developer mode** (toggle in the top right)
-4. Click **Load unpacked** and pick the `extension/` folder from the cloned repo
-5. You'll see the Real Browser MCP icon in your toolbar. Click it - the dot is green when connected, gray when waiting for the server
+**From the Chrome Web Store (recommended):**
+
+[<img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" height="58" />](https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi)
+
+**Or load from source:**
+
+1. Clone this repo: `git clone https://github.com/ofershap/real-browser-mcp.git`
+2. Go to `chrome://extensions`, turn on **Developer mode**
+3. Click **Load unpacked** and pick the `extension/` folder
+
+Click the Real Browser MCP icon in your toolbar. Green dot = connected, gray = waiting for server.
 
 That's it. Your agent can now see and control your browser.
 

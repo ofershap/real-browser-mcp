@@ -1,5 +1,8 @@
 # Chrome Web Store Submission Details
 
+Extension ID: `fkkimpklpgedomcheiojngaaaicmaidi`
+URL: https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi
+
 ## Item name
 Real Browser MCP
 

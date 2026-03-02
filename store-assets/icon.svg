@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Solid blue rounded background -->
+  <rect width="128" height="128" rx="28" ry="28" fill="#4A6CF7"/>
+
+  <!-- Browser window - white -->
+  <rect x="20" y="26" width="88" height="64" rx="8" ry="8" fill="white"/>
+
+  <!-- Title bar darker area -->
+  <rect x="20" y="26" width="88" height="16" rx="8" ry="8" fill="#E8ECF4"/>
+  <rect x="20" y="34" width="88" height="8" fill="#E8ECF4"/>
+
+  <!-- Traffic lights -->
+  <circle cx="32" cy="34" r="3.5" fill="#FF5F57"/>
+  <circle cx="43" cy="34" r="3.5" fill="#FEBC2E"/>
+  <circle cx="54" cy="34" r="3.5" fill="#28C840"/>
+
+  <!-- Content lines -->
+  <rect x="28" y="50" width="48" height="5" rx="2.5" fill="#D1D5E0"/>
+  <rect x="28" y="60" width="36" height="5" rx="2.5" fill="#D1D5E0"/>
+  <rect x="28" y="70" width="42" height="5" rx="2.5" fill="#D1D5E0"/>
+  <rect x="28" y="80" width="30" height="5" rx="2.5" fill="#D1D5E0"/>
+
+  <!-- Eye icon - bottom right, overlapping browser -->
+  <g transform="translate(68, 68)">
+    <!-- Eye white background circle -->
+    <circle cx="24" cy="24" r="24" fill="#4A6CF7"/>
+    <circle cx="24" cy="24" r="22" fill="white"/>
+
+    <!-- Eye shape -->
+    <path d="M6,24 Q24,8 42,24 Q24,40 6,24 Z" fill="#4A6CF7" opacity="0.15"/>
+    <path d="M6,24 Q24,8 42,24 Q24,40 6,24 Z" fill="none" stroke="#4A6CF7" stroke-width="2.5"/>
+
+    <!-- Iris -->
+    <circle cx="24" cy="24" r="8" fill="#4A6CF7"/>
+    <!-- Pupil -->
+    <circle cx="24" cy="24" r="4" fill="#1A2B6B"/>
+    <!-- Shine -->
+    <circle cx="27" cy="21" r="2.5" fill="white" opacity="0.85"/>
+  </g>
+</svg>

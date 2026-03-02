@@ -1,6 +1,6 @@
 {
   "name": "real-browser-mcp",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "description": "MCP server + Chrome extension that gives AI agents control of your real browser with existing sessions and logins",
   "type": "module",
   "bin": {

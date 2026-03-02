@@ -5,7 +5,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 280px;
+      width: 300px;
       font: 13px/1.5 system-ui, -apple-system, sans-serif;
       background: #0f0f0f;
       color: #e4e4e7;
@@ -22,17 +22,26 @@
       font-weight: 600;
     }
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .dot.on { background: #22c55e; box-shadow: 0 0 6px #22c55e80; }
-    .dot.off { background: #6b7280; }
+    .dot.connected { background: #22c55e; box-shadow: 0 0 6px #22c55e80; }
+    .dot.reconnecting { background: #f59e0b; box-shadow: 0 0 6px #f59e0b80; animation: pulse 1.5s ease-in-out infinite; }
+    .dot.disconnected { background: #6b7280; }
+    .dot.error { background: #ef4444; box-shadow: 0 0 6px #ef444480; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     .status {
       font-size: 12px;
       color: #a1a1aa;
+      margin-bottom: 4px;
+    }
+    .status-detail {
+      font-size: 11px;
+      color: #52525b;
       margin-bottom: 12px;
+      min-height: 16px;
     }
     .field {
       margin-bottom: 12px;
@@ -58,11 +67,26 @@
     .field input:focus {
       border-color: #667eea;
     }
-    .info {
+    .log {
+      margin-top: 8px;
+      padding: 8px;
+      background: #1c1c1e;
+      border-radius: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+      font: 11px/1.6 'SF Mono', Menlo, monospace;
+      color: #71717a;
+    }
+    .log .entry { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log .entry.err { color: #ef4444; }
+    .log .entry.ok { color: #22c55e; }
+    .log .entry.warn { color: #f59e0b; }
+    .footer {
       font-size: 11px;
       color: #52525b;
       margin-top: 10px;
-      line-height: 1.6;
+      display: flex;
+      justify-content: space-between;
     }
     a { color: #667eea; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -74,14 +98,18 @@
     <h1>Real Browser MCP</h1>
   </div>
   <div class="status" id="status">Checking...</div>
+  <div class="status-detail" id="detail"></div>
 
   <div class="field">
     <label>WebSocket Port</label>
     <input type="number" id="port" value="7225" min="1" max="65535">
   </div>
 
-  <div class="info">
-    <a href="https://github.com/ofershap/real-browser-mcp" target="_blank">Documentation</a>
+  <div class="log" id="log"></div>
+
+  <div class="footer">
+    <a href="https://github.com/ofershap/real-browser-mcp" target="_blank">Docs</a>
+    <span id="version"></span>
   </div>
 
   <script src="popup.js"></script>

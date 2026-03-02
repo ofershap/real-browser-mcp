@@ -9,6 +9,9 @@ let ws = null;
 let isConnected = false;
 let reconnectAttempts = 0;
 let reconnectTimeout = null;
+let nextRetryMs = 0;
+let connectedSince = null;
+let lastError = null;
 let consoleMessages = [];
 let networkRequests = [];
 let currentActivity = null;
@@ -35,21 +38,26 @@ function connect() {
     ws.onopen = () => {
       isConnected = true;
       reconnectAttempts = 0;
+      connectedSince = Date.now();
+      lastError = null;
       updateBadge('connected');
-      broadcastStatus();
+      broadcastStatus('Connected');
     };
 
     ws.onclose = () => {
       isConnected = false;
+      connectedSince = null;
       ws = null;
       updateBadge('disconnected');
-      broadcastStatus();
+      broadcastStatus('Disconnected');
       scheduleReconnect();
     };
 
     ws.onerror = () => {
       isConnected = false;
+      lastError = `Connection refused on port ${wsPort}`;
       updateBadge('error');
+      broadcastStatus(lastError);
     };
 
     ws.onmessage = async (event) => {
@@ -74,6 +82,8 @@ function scheduleReconnect() {
   const jitter = Math.random() * 500;
   const delay = Math.min(RECONNECT_BASE_MS * Math.pow(2, reconnectAttempts) + jitter, RECONNECT_MAX_MS);
   reconnectAttempts++;
+  nextRetryMs = delay;
+  broadcastStatus(`Retry #${reconnectAttempts} in ${Math.round(delay / 1000)}s`);
   reconnectTimeout = setTimeout(connect, delay);
 }
 
@@ -132,8 +142,28 @@ async function hideOverlay(tabId) {
   } catch {}
 }
 
-function broadcastStatus() {
-  chrome.runtime.sendMessage({ type: 'status', connected: isConnected }).catch(() => {});
+function getConnectionState() {
+  if (isConnected) return 'connected';
+  if (reconnectAttempts > 0) return 'reconnecting';
+  return 'disconnected';
+}
+
+function buildStatusPayload(message) {
+  return {
+    type: 'status',
+    connectionState: getConnectionState(),
+    port: wsPort,
+    reconnectAttempts,
+    nextRetryMs,
+    connectedSince,
+    lastError,
+    activity: currentActivity,
+    statusMessage: message || null,
+  };
+}
+
+function broadcastStatus(message) {
+  chrome.runtime.sendMessage(buildStatusPayload(message)).catch(() => {});
 }
 
 // --- Message Router ---
@@ -682,7 +712,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
   if (msg.type === 'console') {
     consoleMessages.push({ level: msg.level, text: msg.text, timestamp: Date.now(), url: sender.tab?.url });
   } else if (msg.type === 'getStatus') {
-    respond({ connected: isConnected, port: wsPort, activity: currentActivity });
+    respond(buildStatusPayload());
   } else if (msg.type === 'setPort') {
     const p = parseInt(msg.port, 10);
     if (p > 0 && p < 65536) {

@@ -1,0 +1,90 @@
+---
+description: Core project context for real-browser-mcp
+alwaysApply: true
+---
+
+# real-browser-mcp
+
+MCP server + Chrome extension that gives AI agents control of the user's real browser (not headless). Two components that talk over WebSocket on localhost.
+
+## Architecture
+
+```
+mcp-server/src/         TypeScript, compiled to mcp-server/dist/
+  index.ts              Entry point, MCP registration, CLI --setup flag
+  bridge.ts             WebSocket server, retry logic, ping/pong, per-tool timeouts
+  tools/                One file per tool, exported via index.ts barrel
+    types.ts            ToolDefinition interface, result helpers
+
+extension/              Plain JS (not compiled), Chrome Manifest V3
+  background.js         Service worker, WebSocket client, tool dispatch, reconnection
+  content.js            Console capture only (no DOM helpers)
+  popup/                Connection status UI with diagnostics log
+
+agent-config/           Cursor rules, commands, Claude Code AGENTS.md, skills
+  setup.mjs             npx real-browser-mcp --setup cursor|claude
+```
+
+## Two-Component System
+
+The MCP server and Chrome extension are separate. The server runs via stdio (started by Cursor/Claude), the extension runs in Chrome. They connect over WebSocket.
+
+- Server listens, extension connects as client
+- Default port: 7225 (chosen to avoid CDP's 9222-9224 range and BrowserMCP's 9009)
+- Port is configurable via WS_PORT env var (server) and extension popup (client)
+- Both must use the same port or they won't connect
+
+## Versioning
+
+Versions jump by minor: 1.0.0, 1.1.0, 1.2.0, etc. Both package.json AND extension/manifest.json versions must stay in sync. Also update SERVER_VERSION in mcp-server/src/index.ts.
+
+Three places to bump:
+1. `package.json` "version"
+2. `extension/manifest.json` "version"
+3. `mcp-server/src/index.ts` SERVER_VERSION constant
+
+## Publishing
+
+npm package name matches directory name: `real-browser-mcp`.
+
+```bash
+npm run build
+NPM_CONFIG_USERCONFIG=/tmp/.npmrc-publish npm publish --access public
+```
+
+The npm package includes: mcp-server/dist/, extension/, agent-config/, LICENSE, README.md.
+The extension is NOT on Chrome Web Store - users load it unpacked.
+
+## Adding a New Tool
+
+1. Create `mcp-server/src/tools/<name>.ts` with a ToolDefinition export
+2. Add handler function in `extension/background.js` dispatch() map
+3. Export from `mcp-server/src/tools/index.ts`
+4. Add test in `tests/tools/`
+
+Tool schemas use `z.ZodObject<z.ZodRawShape>` (not plain ZodType) because the MCP SDK expects `.shape` property.
+
+## Testing
+
+```bash
+npm test              # vitest run, 26 tests
+npm run typecheck     # tsc --noEmit
+```
+
+Tests use unique ports (19230+) via a counter to avoid conflicts between parallel test runs. Bridge tests need port isolation because WebSocket servers take time to unbind.
+
+## Key Decisions Made
+
+- Port 7225: avoids Chrome DevTools Protocol range (9222-9224) and BrowserMCP (9009). Not registered in IANA.
+- No `debugger` permission in extension: was in the original project but never used. Highly privileged, removed.
+- Content script is minimal: only captures console. All DOM interaction uses chrome.scripting.executeScript from background.js.
+- Accessibility tree snapshot assigns `data-mcp-ref` attributes (e12, e13...) for element targeting. Refs are invalidated after navigation or scroll.
+- Cursor deeplink for one-click install: `cursor://anysphere.cursor-deeplink/mcp/install?name=real-browser&config=<base64>`
+
+## Extension Debugging
+
+- Extension errors: chrome://extensions > Real Browser MCP > Errors
+- Background script console: chrome://extensions > Real Browser MCP > "Inspect views: service worker"
+- Popup shows: connection state (connected/reconnecting/error), attempt count, retry countdown, event log
+- Common error: "EADDRINUSE" means another process already has the port. Kill it or change WS_PORT.
+- Common error: "ERR_CONNECTION_REFUSED" means the MCP server isn't running. Check Cursor MCP settings.

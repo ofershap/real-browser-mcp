@@ -1,0 +1,28 @@
+---
+description: MCP server development patterns
+globs: mcp-server/**
+---
+
+# MCP Server Development
+
+## SDK Registration
+
+Tools are registered with the MCP SDK via `server.tool()`. The SDK expects `tool.inputSchema.shape` (the raw Zod shape object), not the full ZodObject. The ToolDefinition type enforces `z.ZodObject<z.ZodRawShape>` for this reason.
+
+## Bridge
+
+ExtensionBridge is the WebSocket server that talks to the Chrome extension.
+
+- `start()` returns a Promise that resolves when the server is listening (needed for test synchronization)
+- `callTool(name, params)` sends a request and waits for a matching response by ID
+- Requests have per-tool timeouts defined in TOOL_TIMEOUTS (5s clicks, 60s navigation, etc.)
+- Failed requests retry up to maxRetries (default 2) before throwing
+- `waitForConnection(timeoutMs)` blocks until an extension connects or times out
+
+## Error Handling
+
+Tool handlers in index.ts are wrapped in try/catch. Errors return MCP-formatted error responses (isError: true) rather than crashing the server. The bridge also handles WebSocket-level errors (connection drops, timeouts) separately from tool-level errors.
+
+## CLI Setup Flag
+
+`mcp-server/src/index.ts` checks for `--setup` in argv before importing the MCP SDK. If present, it runs `agent-config/setup.mjs` and exits. This lets `npx real-browser-mcp --setup cursor` work as a one-liner.

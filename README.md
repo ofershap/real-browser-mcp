@@ -28,19 +28,15 @@
 
 ---
 
-## Your Agent Works in a Void
+You ship a fix. Your agent says "done, please verify."
+You alt-tab to Chrome, navigate to the page, log in, click around, find the bug.
 
-Your agent writes code, runs tests, passes CI. Then says "please verify in the browser." So you alt-tab to Chrome, navigate to the right page, log in, find the button, click it, check if it broke something. That's the loop. Every time.
+Your agent just wrote the code. It could also verify it.
+It already has your browser open right there. It just can't see it.
 
-Think about it - the agent that just refactored your entire checkout flow can't click a single button on the page to see if it still works.
-
-Playwright MCP? It launches a blank browser. No cookies, no sessions, nothing. If your app is behind auth or corporate SSO, you're spending half the time just getting the agent logged in. And for a quick "did my CSS change break the sidebar?" check, that's absurd.
-
-This is the missing piece. An MCP server + Chrome extension that plugs the agent directly into the browser already on your screen. Your sessions. Your cookies. Your local storage. Nothing to set up, nothing to re-authenticate.
+Now it can.
 
 ![Demo](assets/demo.gif)
-
-<sub>Animation by <a href="https://github.com/ofershap/remotion-readme-kit">remotion-readme-kit</a></sub>
 
 ---
 

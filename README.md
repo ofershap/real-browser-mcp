@@ -15,7 +15,7 @@
   &nbsp;
   <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=real-browser&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInJlYWwtYnJvd3Nlci1tY3AiXX0="><img src="https://img.shields.io/badge/Add_to_Cursor-6366f1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNS0xMC01LTEwIDV6TTIgMTJsMTAgNSAxMC01LTEwLTUtMTAgNXoiIGZpbGw9IndoaXRlIi8+PC9zdmc+" alt="Add to Cursor" /></a>
   &nbsp;
-  <a href="#teach-your-agent"><img src="https://img.shields.io/badge/Agent_Rules-22c55e?style=for-the-badge" alt="Agent Rules" /></a>
+  <a href="#-teach-your-agent"><img src="https://img.shields.io/badge/🧠_Agent_Rules-22c55e?style=for-the-badge" alt="Agent Rules" /></a>
 </p>
 
 <p align="center">
@@ -28,18 +28,15 @@
 
 ---
 
-An MCP server + Chrome extension that connects your AI agent to the browser you already have open.
-Not a headless copy. Your actual tabs, sessions, cookies, logins - all there.
+## Your Agent Works in a Void
 
-```
-You: "I fixed the checkout form. Go verify the credit card field validates correctly."
+Your agent writes code, runs tests, passes CI. Then says "please verify in the browser." So you alt-tab to Chrome, navigate to the right page, log in, find the button, click it, check if it broke something. That's the loop. Every time.
 
-Agent: *navigates to staging.myapp.com/checkout*
-       *types "1234" into the card field*
-       *clicks Pay*
-       "Red error appeared: 'Please enter a valid card number'.
-        Validation works. No console errors."
-```
+Think about it - the agent that just refactored your entire checkout flow can't click a single button on the page to see if it still works.
+
+Playwright MCP? It launches a blank browser. No cookies, no sessions, nothing. If your app is behind auth or corporate SSO, you're spending half the time just getting the agent logged in. And for a quick "did my CSS change break the sidebar?" check, that's absurd.
+
+This is the missing piece. An MCP server + Chrome extension that plugs the agent directly into the browser already on your screen. Your sessions. Your cookies. Your local storage. Nothing to set up, nothing to re-authenticate.
 
 ![Demo](assets/demo.gif)
 
@@ -47,25 +44,12 @@ Agent: *navigates to staging.myapp.com/checkout*
 
 ---
 
-## Your Agent Works in a Void
-
-You build a feature. You ship it. Then you switch to Chrome, click around, and find out it's broken.
-
-Your AI agent can write code, run tests, check types. But it can't open your staging site, log in with your session, click the button you just changed, and tell you what happened.
-
-Playwright MCP launches a blank browser with no state.
-Chrome DevTools MCP needs you to restart Chrome with a debug flag.
-
-This project connects the agent to the browser already on your screen.
-Logged-in sessions, cookies, local storage - it picks up right where you are.
-
----
-
 ## Quick Start
 
-You need two things:
-- **MCP server** - runs locally, talks to your AI agent
-- **Chrome extension** - lives in your browser, executes commands
+Two parts:
+
+- **MCP server** - runs on your machine, talks to your AI agent
+- **Chrome extension** - sits in your browser, executes the commands
 
 ### 1. Add the MCP server
 
@@ -101,16 +85,17 @@ Any MCP-compatible client works.
 
 [<img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" height="58" />](https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi)
 
-<details>
-<summary>Or load from source</summary>
+**Or load from source:**
 
-1. Clone this repo: `git clone https://github.com/ofershap/real-browser-mcp.git`
-2. Go to `chrome://extensions`, enable **Developer mode**
-3. Click **Load unpacked**, pick the `extension/` folder
+```bash
+git clone https://github.com/ofershap/real-browser-mcp.git
+```
 
-</details>
+1. Open `chrome://extensions` and enable **Developer mode** (toggle in the top right)
+2. Click **Load unpacked** and select the `extension/` folder from the cloned repo
 
 Click the Real Browser MCP icon in your toolbar.
+
 Green dot = connected. Gray = waiting for server.
 
 Done. Your agent can see your browser.
@@ -128,20 +113,21 @@ Done. Your agent can see your browser.
 
 ---
 
-## Teach Your Agent
+## 🧠 Teach Your Agent
 
-Your agent works better when it knows the tools exist and how to chain them.
-Run one command and it gets a config file that teaches the right workflow:
+The agent can use all 18 tools out of the box, but it works better when it knows _when_ and _how_ to chain them. A config file teaches the right workflow - snapshot first, then act, then verify.
+
+Run one command:
 
 ```bash
 npx real-browser-mcp --setup cursor
 ```
 
-This installs two things:
-- `~/.cursor/rules/real-browser-mcp.mdc` - teaches the snapshot-first workflow
-- `~/.cursor/commands/check-browser.md` - adds a `/check-browser` command to Cursor chat
+This installs:
+- `~/.cursor/rules/real-browser-mcp.mdc` - teaches the snapshot-first workflow, how to handle dropdowns, when to use screenshots vs snapshots
+- `~/.cursor/commands/check-browser.md` - adds `/check-browser` to your Cursor chat
 
-After install, type `/check-browser` in any chat or just say "check the result in my browser."
+After that, type `/check-browser` in any chat. Or just say "check the result in my browser" and the agent knows what to do.
 
 <details>
 <summary>Claude Code setup</summary>
@@ -150,11 +136,11 @@ After install, type `/check-browser` in any chat or just say "check the result i
 npx real-browser-mcp --setup claude
 ```
 
-Adds an `AGENTS.md` file to your project root. Claude Code auto-discovers it.
+Adds an `AGENTS.md` to your project root. Claude Code auto-discovers it.
 
 </details>
 
-See [`agent-config/`](agent-config/) for manual installation.
+See [`agent-config/`](agent-config/) for manual installation or to customize the rules.
 
 ---
 
@@ -280,23 +266,40 @@ npm test
 
 </details>
 
+## FAQ
+
 <details>
-<summary><strong>FAQ</strong></summary>
+<summary>Does it work with my logged-in sessions?</summary>
 
-**Does it work with my logged-in sessions?**
-Yes. That's the whole point. The extension runs in your actual browser.
+That's the whole point. The extension runs inside your actual Chrome - same cookies, same sessions, same local storage. No re-authentication needed.
 
-**Does it send data anywhere?**
-No. MCP server and extension talk over WebSocket on localhost. Nothing leaves your machine.
+</details>
 
-**Which AI clients work?**
-Any MCP-compatible client. Cursor, Claude Desktop, Windsurf, and others.
+<details>
+<summary>Does it send data anywhere?</summary>
 
-**Multiple Chrome profiles?**
-Run two MCP server instances on different ports. See [Configuration](#configuration).
+No. The MCP server and extension talk over WebSocket on localhost. Nothing leaves your machine. There's no analytics, no telemetry, no cloud component. [Privacy policy.](PRIVACY.md)
 
-**How is this different from browser-use or Playwright?**
-They launch a new browser. This connects to the one you're already using.
+</details>
+
+<details>
+<summary>Which AI clients work?</summary>
+
+Any MCP-compatible client. Cursor, Claude Desktop, Claude Code, Windsurf, Cline, and anything else that speaks the MCP protocol.
+
+</details>
+
+<details>
+<summary>Can I use it with multiple Chrome profiles?</summary>
+
+Yes. Run two MCP server instances on different ports. See [Configuration](#configuration) for the setup.
+
+</details>
+
+<details>
+<summary>How is this different from Playwright MCP or browser-use?</summary>
+
+They launch a new browser instance from scratch - no state, no cookies, no sessions. You have to replay the full login flow every time. This connects to the browser you already have open with everything already loaded.
 
 </details>
 

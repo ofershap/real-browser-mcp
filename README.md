@@ -5,7 +5,7 @@
 <h1 align="center">real-browser-mcp</h1>
 
 <p align="center">
-  <strong>Your AI agent builds features all day but can't see a single one of them. This fixes that.</strong>
+  The missing piece in AI coding: your agent can now see your REAL browser.
 </p>
 
 <p align="center">
@@ -14,30 +14,23 @@
   <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/dm/real-browser-mcp.svg" alt="npm downloads" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
-  <a href="https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi"><img src="https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Extension" /></a>
 </p>
 
 <p align="center">
-  <a href="#quick-start"><img src="https://img.shields.io/badge/Quick_Start-grey?style=for-the-badge" alt="Quick Start" /></a>
+  <a href="https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi"><img src="https://img.shields.io/badge/Chrome_Web_Store-Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
   &nbsp;
-  <a href="#tools"><img src="https://img.shields.io/badge/Tools-grey?style=for-the-badge" alt="Tools" /></a>
+  <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/badge/npm-MCP_Server-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm MCP Server" /></a>
   &nbsp;
-  <a href="#usage-examples"><img src="https://img.shields.io/badge/Examples-grey?style=for-the-badge" alt="Examples" /></a>
+  <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=real-browser&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInJlYWwtYnJvd3Nlci1tY3AiXX0="><img src="https://img.shields.io/badge/Add_to_Cursor-one_click-6366f1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNS0xMC01LTEwIDV6TTIgMTJsMTAgNSAxMC01LTEwLTUtMTAgNXoiIGZpbGw9IndoaXRlIi8+PC9zdmc+" alt="Add to Cursor" /></a>
   &nbsp;
-  <a href="#agent-config"><img src="https://img.shields.io/badge/Agent_Config-grey?style=for-the-badge" alt="Agent Config" /></a>
+  <a href="#agent-config"><img src="https://img.shields.io/badge/Agent_Rules-config-22c55e?style=for-the-badge" alt="Agent Rules" /></a>
 </p>
 
 ---
 
-## Have you ever tested what your agent actually built?
+An MCP server + Chrome extension that connects your AI agent to the browser you already have open. Not a headless copy. Your actual tabs, sessions, cookies, logins - all intact.
 
-Your agent writes code, runs tests, commits. Then says: "Done! Can you verify it looks correct?"
-
-So you switch to the browser. Log in. Navigate three levels deep. Click around. Find out the padding is wrong. Back to the agent. Another fix. Another "please verify." You are the agent's eyes and legs.
-
-The missing piece in AI coding isn't writing code or running tests — it's verifying the result in the browser. Your agent literally cannot see what it built.
-
-That's what this project solves. An MCP server + Chrome extension that connects your agent to the browser you already have open — already logged in, already on the right page, with all your sessions and cookies intact. Not a headless copy. Not a fresh Playwright instance where you'd need to replay your entire auth flow. Your actual browser.
+Playwright MCP launches a blank browser. Chrome DevTools MCP needs a debug port. This one uses the browser you're already logged into.
 
 ```
 You: "Check if the save button works on the settings page"
@@ -48,6 +41,10 @@ Agent: *takes snapshot of your open browser tab*
        *reads the success message*
        "Save button works. Shows 'Settings saved' and the form resets."
 ```
+
+![Demo](assets/demo.gif)
+
+<sub>Demo animation created with <a href="https://github.com/ofershap/remotion-readme-kit">remotion-readme-kit</a></sub>
 
 ---
 
@@ -113,6 +110,20 @@ This adds a `/check-browser` command to Cursor. Type it in chat anytime to have 
 
 ---
 
+## Why Not Playwright MCP / Chrome DevTools MCP?
+
+| | Real Browser MCP | Playwright MCP | Chrome DevTools MCP |
+|---|---|---|---|
+| Uses your existing browser | Yes | No, launches new instance | Partial, connects via debug port |
+| Sessions/cookies/logins | Already there | Gone, fresh profile | Requires manual setup |
+| Works behind corporate SSO | Yes | No | Depends |
+| Setup | Install extension, add MCP config | Launch headless browser | Launch Chrome with `--remote-debugging-port` |
+| Feels like | Giving the agent your screen | Giving the agent a lab browser | Giving the agent a debug session |
+
+The core difference: Playwright and Chrome DevTools MCP create or attach to a separate browser. Real Browser MCP controls the one you're already using. If your app needs auth, complex state, or specific cookies, you don't have to recreate any of that.
+
+---
+
 ## Usage Examples
 
 ### Verify your own changes
@@ -133,7 +144,7 @@ Your agent navigates in your already-authenticated browser, takes a screenshot, 
 
 > "Scroll down on the current page and find all the error messages"
 
-Works with infinite scroll and virtual containers (Twitter feeds, Reddit threads). The agent scrolls, takes snapshots, and extracts the text.
+Works with infinite scroll and virtual containers. The agent scrolls, takes snapshots, and extracts the text.
 
 ### Debug a network issue
 
@@ -151,7 +162,7 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 
 ## Tools
 
-17 tools organized by what they do.
+18 tools organized by what they do.
 
 ### Navigation & Tabs
 
@@ -165,6 +176,7 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 | Tool | Description |
 |------|-------------|
 | `browser_click` | Click elements by ref or CSS selector |
+| `browser_click_text` | Click elements by visible text content (CSP-safe, works with React portals) |
 | `browser_type` | Type into inputs and content-editable fields |
 | `browser_press_key` | Press keys and combos (Enter, Escape, Ctrl+A) |
 | `browser_scroll` | Scroll pages and virtual scroll containers |
@@ -176,17 +188,17 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 
 | Tool | Description |
 |------|-------------|
-| `browser_snapshot` | Accessibility tree with refs - compact mode (default) returns only interactive elements, ~70% smaller |
+| `browser_snapshot` | Accessibility tree with refs. Compact mode (default) returns only interactive elements, ~70% smaller |
 | `browser_screenshot` | Capture what's visible on screen |
 | `browser_text` | Extract raw text from page or element |
-| `browser_find` | Find elements by natural language description |
+| `browser_find` | Find elements by CSS selector |
 
 ### JavaScript & Dialogs
 
 | Tool | Description |
 |------|-------------|
-| `browser_evaluate` | Execute JavaScript in the page context and return the result - use for anything other tools can't handle (React portals, custom dropdowns, complex DOM operations) |
-| `browser_handle_dialog` | Handle alert/confirm/prompt dialogs - call before actions that might trigger them |
+| `browser_evaluate` | Run JavaScript in the page via Chrome DevTools Protocol |
+| `browser_handle_dialog` | Handle alert/confirm/prompt dialogs |
 
 ### Debugging
 
@@ -194,20 +206,6 @@ The agent snapshots the form, types into each field, selects dropdowns, and hits
 |------|-------------|
 | `browser_console` | Read console output (log, warn, error) |
 | `browser_network` | See XHR/fetch requests with status codes |
-
----
-
-## Why Not Playwright MCP / Chrome DevTools MCP?
-
-| | Real Browser MCP | Playwright MCP | Chrome DevTools MCP |
-|---|---|---|---|
-| Uses your existing browser | Yes | No, launches new instance | Partial, connects via debug port |
-| Sessions/cookies/logins | Already there | Gone, fresh profile | Requires manual setup |
-| Works behind corporate SSO | Yes | No | Depends |
-| Setup | Install extension, add MCP config | Launch headless browser | Launch Chrome with `--remote-debugging-port` |
-| Feels like | Giving the agent your screen | Giving the agent a lab browser | Giving the agent a debug session |
-
-The core difference: Playwright MCP and Chrome DevTools MCP create or attach to a separate browser. Real Browser MCP controls the one you're already using. If your app needs auth, complex state, or specific cookies, you don't have to recreate any of that.
 
 ---
 

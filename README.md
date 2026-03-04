@@ -40,8 +40,6 @@ Now it can.
   <img src="assets/preview.png" alt="Real Browser MCP" width="100%" />
 </p>
 
-![Demo](assets/demo.gif)
-
 ---
 
 ## Quick Start

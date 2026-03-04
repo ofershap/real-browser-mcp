@@ -36,6 +36,10 @@ It already has your browser open right there. It just can't see it.
 
 Now it can.
 
+<p align="center">
+  <img src="assets/preview.png" alt="Real Browser MCP" width="100%" />
+</p>
+
 ![Demo](assets/demo.gif)
 
 ---

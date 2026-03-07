@@ -314,6 +314,11 @@ Bug reports, feature requests, and PRs welcome. Open an issue first for larger c
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/ofershap)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat&logo=github&logoColor=white)](https://github.com/ofershap)
 
+
+---
+
+<sub>README built with [README Builder](https://ofershap.github.io/readme-builder/)</sub>
+
 ## License
 
 [MIT](LICENSE) &copy; [Ofer Shapira](https://github.com/ofershap)

@@ -1,6 +1,7 @@
 {
   "name": "real-browser-mcp",
-  "version": "1.2.0",
+  "mcpName": "io.github.ofershap/real-browser",
+  "version": "1.2.1",
   "description": "MCP server + Chrome extension that gives AI agents control of your real browser with existing sessions and logins",
   "type": "module",
   "bin": {

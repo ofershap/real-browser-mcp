@@ -26,6 +26,10 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
 </p>
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Demo" />
+</p>
+
 ---
 
 You ship a fix. Your agent says "done, please verify."

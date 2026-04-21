@@ -46,6 +46,10 @@ Now it can.
 
 ---
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/ofershap-real-browser-mcp).
+
 ## Quick Start
 
 Two parts:

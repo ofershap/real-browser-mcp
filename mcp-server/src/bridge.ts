@@ -30,6 +30,10 @@ const TOOL_TIMEOUTS: Record<string, number> = {
   browser_network: 5_000,
   browser_tabs: 5_000,
   browser_scroll: 10_000,
+  browser_upload_file: 15_000,
+  browser_run_action: 30_000,
+  browser_drag: 10_000,
+  browser_fill_form: 15_000,
 };
 
 export class ExtensionBridge {

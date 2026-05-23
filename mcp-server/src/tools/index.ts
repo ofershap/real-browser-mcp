@@ -17,6 +17,10 @@ import { selectTool } from './select.js';
 import { evaluateTool } from './evaluate.js';
 import { clickTextTool } from './click-text.js';
 import { dialogTool } from './dialog.js';
+import { uploadFileTool } from './upload-file.js';
+import { runActionTool } from './run-action.js';
+import { dragTool } from './drag.js';
+import { fillFormTool } from './fill-form.js';
 
 export const allTools: ToolDefinition[] = [
   navigateTool,
@@ -37,6 +41,10 @@ export const allTools: ToolDefinition[] = [
   evaluateTool,
   clickTextTool,
   dialogTool,
+  uploadFileTool,
+  runActionTool,
+  dragTool,
+  fillFormTool,
 ];
 
 export const toolMap = new Map<string, ToolDefinition>(

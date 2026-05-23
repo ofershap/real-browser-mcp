@@ -221,6 +221,10 @@ async function dispatch(tool, params) {
     browser_evaluate: handleEvaluate,
     browser_click_text: handleClickByText,
     browser_handle_dialog: handleDialog,
+    browser_upload_file: handleUploadFile,
+    browser_run_action: handleRunAction,
+    browser_drag: handleDrag,
+    browser_fill_form: handleFillForm,
     find: handleFind,
     browser_find: handleFind,
     get_page_text: handleGetPageText,
@@ -879,6 +883,178 @@ async function handleDialog(params) {
       message: log.length ? 'Retrieved dialog history' : 'Overrides configured',
     };
   }, [action, promptText]);
+}
+
+async function handleRunAction(params) {
+  const { code, actionParams = {} } = params;
+  if (!code) throw new Error('code is required');
+  const tab = await getActiveTab();
+
+  await chrome.debugger.attach({ tabId: tab.id }, '1.3');
+  try {
+    const paramsJson = JSON.stringify(actionParams);
+    const expression = `(async function() { try { var tool = (${code}); if (tool && typeof tool.execute === "function") { return await tool.execute(${paramsJson}); } return { error: "No execute function found" }; } catch(e) { return { error: e.message, stack: e.stack }; } })()`;
+
+    const { result, exceptionDetails } = await chrome.debugger.sendCommand(
+      { tabId: tab.id },
+      'Runtime.evaluate',
+      { expression, awaitPromise: true, returnByValue: true },
+    );
+
+    if (exceptionDetails) {
+      return { success: false, error: exceptionDetails.exception?.description || exceptionDetails.text };
+    }
+    return { success: true, result: result.value };
+  } finally {
+    try { await chrome.debugger.detach({ tabId: tab.id }); } catch {}
+  }
+}
+
+async function handleUploadFile(params) {
+  const { ref, selector, filePath, files: fileList } = params;
+  const tab = await getActiveTab();
+  const filePaths = fileList || (filePath ? [filePath] : []);
+  if (filePaths.length === 0) throw new Error('filePath or files required');
+
+  await chrome.debugger.attach({ tabId: tab.id }, '1.3');
+  try {
+    await chrome.debugger.sendCommand({ tabId: tab.id }, 'DOM.enable', {});
+    const { root } = await chrome.debugger.sendCommand({ tabId: tab.id }, 'DOM.getDocument', {});
+
+    let sel = 'input[type="file"]';
+    if (ref) sel = `[data-mcp-ref="${ref}"]`;
+    else if (selector) sel = selector;
+
+    const { nodeId } = await chrome.debugger.sendCommand({ tabId: tab.id }, 'DOM.querySelector', {
+      nodeId: root.nodeId,
+      selector: sel,
+    });
+
+    if (!nodeId) throw new Error(`File input not found with selector: ${sel}`);
+
+    await chrome.debugger.sendCommand({ tabId: tab.id }, 'DOM.setFileInputFiles', {
+      files: filePaths,
+      nodeId,
+    });
+
+    return { success: true, files: filePaths, selector: sel };
+  } finally {
+    try { await chrome.debugger.detach({ tabId: tab.id }); } catch {}
+  }
+}
+
+async function handleDrag(params) {
+  const { startRef, startSelector, endRef, endSelector, startX, startY, endX, endY, steps = 10 } = params;
+  const tab = await getActiveTab();
+
+  let sx = startX, sy = startY, ex = endX, ey = endY;
+
+  if (sx == null || sy == null || ex == null || ey == null) {
+    const coords = await execInTab(tab.id, (_sRef, _sSel, _eRef, _eSel) => {
+      function find(ref, sel) {
+        let el = ref ? document.querySelector(`[data-mcp-ref="${ref}"]`) : null;
+        if (!el && sel) el = document.querySelector(sel);
+        if (!el) return null;
+        el.scrollIntoView({ behavior: 'instant', block: 'center' });
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }
+      return {
+        start: find(_sRef, _sSel),
+        end: find(_eRef, _eSel),
+      };
+    }, [startRef, startSelector, endRef, endSelector]);
+
+    if (coords.start) { sx = coords.start.x; sy = coords.start.y; }
+    if (coords.end) { ex = coords.end.x; ey = coords.end.y; }
+  }
+
+  if (sx == null || sy == null || ex == null || ey == null) {
+    throw new Error('Could not determine drag coordinates. Provide refs/selectors or explicit x,y coordinates.');
+  }
+
+  await chrome.debugger.attach({ tabId: tab.id }, '1.3');
+  try {
+    await chrome.debugger.sendCommand({ tabId: tab.id }, 'Input.dispatchMouseEvent', {
+      type: 'mousePressed', x: sx, y: sy, button: 'left', clickCount: 1,
+    });
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      await chrome.debugger.sendCommand({ tabId: tab.id }, 'Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        x: Math.round(sx + (ex - sx) * t),
+        y: Math.round(sy + (ey - sy) * t),
+        button: 'left',
+      });
+    }
+
+    await chrome.debugger.sendCommand({ tabId: tab.id }, 'Input.dispatchMouseEvent', {
+      type: 'mouseReleased', x: ex, y: ey, button: 'left', clickCount: 1,
+    });
+
+    return { success: true, from: { x: sx, y: sy }, to: { x: ex, y: ey } };
+  } finally {
+    try { await chrome.debugger.detach({ tabId: tab.id }); } catch {}
+  }
+}
+
+async function handleFillForm(params) {
+  const { fields, submit } = params;
+  if (!fields || !Array.isArray(fields) || fields.length === 0) {
+    throw new Error('fields array is required');
+  }
+  const tab = await getActiveTab();
+
+  return execInTab(tab.id, (_fields, _submit) => {
+    const results = [];
+    for (const field of _fields) {
+      const { ref, selector, value, clear } = field;
+      let el = ref ? document.querySelector(`[data-mcp-ref="${ref}"]`) : null;
+      if (!el && selector) el = document.querySelector(selector);
+      if (!el) {
+        results.push({ selector: selector || ref, success: false, error: 'Not found' });
+        continue;
+      }
+
+      el.focus();
+
+      if (clear !== false) {
+        if (el.isContentEditable) {
+          el.textContent = '';
+        } else {
+          el.value = '';
+        }
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      if (el.tagName === 'SELECT') {
+        el.value = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked !== !!value) el.click();
+      } else if (el.isContentEditable) {
+        document.execCommand('insertText', false, value);
+      } else {
+        el.value = value;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      results.push({ selector: selector || ref, success: true, value });
+    }
+
+    if (_submit) {
+      const form = document.querySelector('form');
+      if (form) {
+        const submitBtn = form.querySelector('[type="submit"]') || form.querySelector('button:not([type="button"])');
+        if (submitBtn) submitBtn.click();
+        else form.submit();
+      }
+    }
+
+    return { success: true, fields: results };
+  }, [fields, submit]);
 }
 
 // --- Events ---

@@ -72,7 +72,7 @@
     "@types/node": "^26.0.0",
     "@types/ws": "^8.5.10",
     "ai-context-kit": "^0.1.1",
-    "typescript": "^6.0.2",
+    "typescript": "^7.0.2",
     "vitest": "^4.0.18"
   }
 }

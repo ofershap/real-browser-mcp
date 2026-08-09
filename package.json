@@ -58,7 +58,11 @@
     "extension/",
     "agent-config/",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "plugin.json",
+    "mcp.json",
+    "skills",
+    "llms.txt"
   ],
   "engines": {
     "node": ">=20.0.0"

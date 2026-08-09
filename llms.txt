@@ -1,37 +1,34 @@
 # real-browser-mcp
 
-> MCP server + Chrome extension that gives AI agents control of your real browser with existing sessions and logins.
+> MCP server plus Chrome extension so AI agents control your real browser with existing sessions and logins.
 
-## What it does
-
-real-browser-mcp is a Model Context Protocol (MCP) server paired with a Chrome extension. It lets AI coding agents (Cursor, Claude, Windsurf, and any MCP client) interact with the user's actual browser - not a headless copy, not a new instance. The browser the user already has open, with their tabs, cookies, sessions, and logins intact.
-
-## Key differentiator
-
-Unlike Playwright MCP or Chrome DevTools MCP, which launch or attach to a separate browser, real-browser-mcp controls the browser the user is already using. For projects with authentication, complex state, or corporate SSO, this means no re-login, no session setup, no cookie recreation.
-
-## Tools (17 total)
-
-Navigation: browser_navigate, browser_tabs
-Interaction: browser_click, browser_type, browser_press_key, browser_scroll, browser_hover, browser_select, browser_wait
-Reading: browser_snapshot (compact mode default - interactive elements only), browser_screenshot, browser_text, browser_find
-JavaScript: browser_evaluate (execute arbitrary JS in page context, supports async/await)
-Dialogs: browser_handle_dialog (handle alert/confirm/prompt)
-Debugging: browser_console, browser_network
-
-## Architecture
-
-- MCP server: Node.js/TypeScript, communicates with AI agent via stdio
-- Chrome extension: Manifest V3, communicates with MCP server via WebSocket on localhost
-- All communication is local. No cloud, no telemetry, no data exfiltration.
+- Homepage: https://github.com/ofershap/real-browser-mcp
+- License: MIT
+- Spec: Agent Plugins 1.0.0 (https://agent-plugins.org)
+- MCP: Model Context Protocol stdio server via npx
 
 ## Install
 
-npm: npx real-browser-mcp
-Chrome extension: Load unpacked from the extension/ directory
+### MCP (Cursor / VS Code / Claude Desktop)
+Use npx package `real-browser-mcp` with stdio transport.
 
-## Links
+### Agent Plugin (Cursor local)
+1. Clone https://github.com/ofershap/real-browser-mcp
+2. Copy or symlink the repo into `~/.cursor/plugins/local/real-browser-mcp`
+3. Reload Cursor Window
+4. Confirm skills and MCP components load under Customize > Plugins
 
-- Repository: https://github.com/ofershap/real-browser-mcp
-- npm: https://www.npmjs.com/package/real-browser-mcp
-- License: MIT
+## Package layout
+- `plugin.json` - Agent Plugins manifest
+- `mcp.json` - portable MCP config (when present)
+- `skills/` - Agent Skills with trigger-rich descriptions
+
+## FAQ
+Q: Is this an Agent Plugin or only an MCP server?
+A: Both. The repo is an Agent Plugins 1.0.0 package that bundles skills and MCP configuration. The runtime remains a standard MCP stdio server published on npm.
+
+Q: Does Agent Plugins replace the official MCP registry entry?
+A: No. `server.json` / npm publishing stay the source of truth for MCP discovery. Agent Plugins is a packaging layer for skills + MCP together.
+
+Q: Are hooks, rules, and subagents portable?
+A: Not in Agent Plugins v1. Only skills and MCP servers are portable. Client-specific features stay in client namespaces.

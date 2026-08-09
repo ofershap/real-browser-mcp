@@ -23,6 +23,7 @@
   <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/v/real-browser-mcp.svg" alt="npm version" /></a>
   <a href="https://www.npmjs.com/package/real-browser-mcp"><img src="https://img.shields.io/npm/dm/real-browser-mcp.svg" alt="npm downloads" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="https://agent-plugins.org"><img src="https://img.shields.io/badge/Agent_Plugins-1.0.0-0ea5e9.svg" alt="Agent Plugins" /></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" /></a>
 </p>
 
@@ -101,6 +102,18 @@ Click the Real Browser MCP icon in your toolbar.
 Green dot = connected. Gray = waiting for server.
 
 Done. Your agent can see your browser.
+
+---
+
+## Agent Plugins
+
+This repo ships as an [Agent Plugins](https://agent-plugins.org) **1.0.0** package: root `plugin.json`, `mcp.json`, and `skills/real-browser-control/` teach agents when to drive your Chrome instead of headless automation.
+
+Claude Code `.claude-plugin/` and `agent-config/` remain for rules and marketplace flows. Agent Plugins is the cross-client layout (MCP + skill in one tree).
+
+**Cursor (local plugin):** clone the repo, then copy or symlink it to `~/.cursor/plugins/local/real-browser-mcp` and reload the window. You still need the Chrome extension connected. One-click MCP install below adds only the server unless you also install the local plugin folder.
+
+Spec and tooling: [agent-plugins.org](https://agent-plugins.org).
 
 ---
 
@@ -270,17 +283,30 @@ npm test
 
 ## FAQ
 
-<details>
-<summary>Does it work with my logged-in sessions?</summary>
+### Is the Chrome extension required?
 
-That's the whole point. The extension runs inside your actual Chrome - same cookies, same sessions, same local storage. No re-authentication needed.
+Yes. The MCP server alone cannot see or control Chrome. Install the [Chrome extension](https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi), open the popup, and wait for a green connected state before calling tools.
 
-</details>
+### Does it work with my existing logins?
+
+Yes. The extension runs in your normal Chrome profile with your cookies, sessions, and local storage. That is the main reason to use real browser automation instead of a fresh headless instance.
+
+### How is this different from Playwright MCP or browser-use?
+
+Those tools launch a separate browser with no state. You replay logins every time. Real Browser MCP attaches to the browser you already have open, including corporate SSO tabs you set up manually.
+
+### Agent Plugins vs MCP-only install?
+
+MCP-only (Cursor deeplink or `mcp.json`) registers the server and tools. The Agent Plugins package adds `plugin.json` and the `real-browser-control` skill so agents prefer snapshot-first workflows and know the extension must be connected. Same npm server either way.
+
+### Is it safe to let an agent control my real browser?
+
+The server and extension talk over WebSocket on localhost only; nothing is sent to a cloud control plane. The agent can still click, type, and read whatever is visible in the connected tab, including logged-in apps. Use a dedicated profile or tab when testing untrusted sites, and do not point automation at tabs with sensitive data unless you accept that risk.
 
 <details>
 <summary>Does it send data anywhere?</summary>
 
-No. The MCP server and extension talk over WebSocket on localhost. Nothing leaves your machine. There's no analytics, no telemetry, no cloud component. [Privacy policy.](PRIVACY.md)
+No. The MCP server and extension talk over WebSocket on localhost. Nothing leaves your machine. There is no analytics, no telemetry, and no cloud component. [Privacy policy.](PRIVACY.md)
 
 </details>
 
@@ -295,13 +321,6 @@ Any MCP-compatible client. Cursor, Claude Desktop, Claude Code, Windsurf, Cline,
 <summary>Can I use it with multiple Chrome profiles?</summary>
 
 Yes. Run two MCP server instances on different ports. See [Configuration](#configuration) for the setup.
-
-</details>
-
-<details>
-<summary>How is this different from Playwright MCP or browser-use?</summary>
-
-They launch a new browser instance from scratch - no state, no cookies, no sessions. You have to replay the full login flow every time. This connects to the browser you already have open with everything already loaded.
 
 </details>
 

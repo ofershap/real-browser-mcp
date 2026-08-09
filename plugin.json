@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "real-browser-mcp",
+  "version": "1.3.0",
+  "description": "MCP server plus Chrome extension so AI agents control your real browser with existing sessions and logins.",
+  "author": {
+    "name": "Ofer Shapira",
+    "url": "https://github.com/ofershap"
+  },
+  "homepage": "https://github.com/ofershap/real-browser-mcp",
+  "repository": "https://github.com/ofershap/real-browser-mcp",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "mcp",
+    "browser",
+    "chrome",
+    "automation",
+    "real-browser"
+  ]
+}

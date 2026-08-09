@@ -62,11 +62,62 @@ Proven pattern that works on all sites including strict-CSP (GitHub, Google):
 
 If `browser_click_text` is available, prefer it — it finds elements by visible text, picks the deepest DOM match, and is CSP-safe.
 
+## Social Media Sites (X/Twitter, LinkedIn, Reddit)
+
+These sites use virtual scroll, React-controlled inputs, and heavy CSP. Patterns learned from real usage:
+
+### Scrolling
+
+`browser_scroll` `amount` is **pixels**, not pages. Default 500px barely moves a feed. Use 2000-3000 to load new content. Always `browser_wait` with `delay: 2000` after scrolling for content to render, then re-read with `browser_text`.
+
+### Reading feeds and search results
+
+- `browser_text` with `selector: "section[role='region']"` and `maxLength: 15000` is the fastest way to read a Twitter/X timeline or search results. Returns all tweet text, usernames, dates, and engagement counts as plain text.
+- `browser_snapshot` on the same selector gives you refs + status URLs (look for `href` containing `/status/`).
+- Combine both: text to read content, snapshot to get clickable refs and URLs.
+
+### Twitter/X search
+
+Build search URLs directly. Key operators:
+- `from:username` - tweets by a specific user
+- `"exact phrase"` - exact match
+- `(word1 OR word2)` - alternatives
+- `-filter:replies` - exclude replies
+- `min_faves:N` - minimum likes
+- `&f=live` at the end for latest results, omit for top/relevance
+
+Example: `https://x.com/search?q=from%3Ausername%20%22keyword%22&src=typed_query`
+
+### Replying on Twitter/X
+
+1. Navigate to the tweet URL (`/username/status/ID`)
+2. `browser_wait` with `delay: 3000` for full load
+3. `browser_snapshot` with `selector: "[data-testid='tweetTextarea_0']"` to find reply box
+4. `browser_click` the ref to focus
+5. `browser_type` the reply text (Twitter limit: 280 chars - count BEFORE typing, you cannot easily clear and retype)
+6. `browser_wait` with `delay: 1500` for link card preview to load
+7. `browser_click` with `selector: "[data-testid='tweetButtonInline']"` to submit
+
+### contentEditable gotchas (applies to all social sites)
+
+- `browser_type` with `clear: true` does NOT work on contentEditable divs (Twitter, LinkedIn composers). React's state doesn't update from `textContent = ''`.
+- `browser_press_key` for Cmd+A / Backspace dispatches events but doesn't trigger native text selection in contentEditable.
+- If you type the wrong thing, **reload the page** and start over. Faster than fighting the editor.
+- Always pre-calculate character limits before typing. You get one shot.
+
+### LinkedIn posting
+
+Reply box selector: `[data-testid='editor']` or `.ql-editor`. Same contentEditable rules apply. Character limit: 3000 for posts, 1250 for comments.
+
+### Reddit
+
+Old reddit is easier to automate (plain HTML forms). New reddit uses React with similar contentEditable issues as Twitter.
+
 ## Workflow
 
 1. `browser_snapshot` to see page structure and get element refs
 2. Use refs with `browser_click`, `browser_type`, etc.
-3. For dropdowns/menus: follow the pattern above (click trigger → wait → text → click child)
+3. For dropdowns/menus: follow the pattern above (click trigger -> wait -> text -> click child)
 4. After actions, re-snapshot or `browser_find` to verify result
 5. `browser_wait` before interacting with dynamically loaded content
 6. `browser_press_key` for keyboard shortcuts (Enter to submit, Escape to close modals)

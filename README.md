@@ -5,7 +5,12 @@
 <h1 align="center">real-browser-mcp</h1>
 
 <p align="center">
-  <strong>The missing piece in AI coding: your agent can now see your REAL browser.</strong>
+  <strong>Agentic browsers give agents a new browser. Coding agents need yours.</strong>
+</p>
+
+<p align="center">
+  MCP + Chrome extension for the Chrome you already have open:<br>
+  cookies, SSO, staging sessions, the bug you already reproduced.
 </p>
 
 <p align="center">
@@ -33,13 +38,17 @@
 
 ---
 
-You ship a fix. Your agent says "done, please verify."
-You alt-tab to Chrome, navigate to the page, log in, click around, find the bug.
+Everyone is building "agentic browsers." Most of them hand the agent a **new** browser: headless Chromium, a cloud VM, a clean profile with no cookies.
 
-Your agent just wrote the code. It could also verify it.
-It already has your browser open right there. It just can't see it.
+That is the wrong tool for the coding loop.
 
-Now it can.
+You ship a fix. The agent says "done, please verify."
+You already have Chrome open on staging, past SSO, on the exact page that breaks.
+The agent wrote the code. It could verify it there. It just cannot see that browser.
+
+**real-browser-mcp** is the bridge: a local MCP server plus a Chrome extension over localhost WebSocket. Your agent talks MCP. Your real Chrome executes. Sessions stay on your machine.
+
+This is not Playwright with a fresh profile. Not a hosted agent browser. Not CDP remote-debugging bolted onto your default Chrome profile (Chrome 136+ blocks that path for good security reasons).
 
 <p align="center">
   <img src="assets/preview.png" alt="Real Browser MCP" width="100%" />
@@ -51,8 +60,8 @@ Now it can.
 
 Two parts:
 
-- **MCP server** - runs on your machine, talks to your AI agent
-- **Chrome extension** - sits in your browser, executes the commands
+- **MCP server** - runs on your machine, talks to your AI agent (Cursor, Claude Code, VS Code, …)
+- **Chrome extension** - runs inside your real Chrome and executes the tools
 
 ### 1. Add the MCP server
 
@@ -107,7 +116,7 @@ Done. Your agent can see your browser.
 
 ## Agent Plugins
 
-This repo ships as an [Agent Plugins](https://agent-plugins.org) **1.0.0** package: root `plugin.json`, `mcp.json`, and `skills/real-browser-control/` teach agents when to drive your Chrome instead of headless automation.
+This repo ships as an [Agent Plugins](https://agent-plugins.org) **1.0.0** package: root `plugin.json`, `mcp.json`, and `skills/real-browser-control/` teach agents when to pick **real Chrome** over headless / cloud agentic browsers.
 
 Claude Code `.claude-plugin/` and `agent-config/` remain for rules and marketplace flows. Agent Plugins is the cross-client layout (MCP + skill in one tree).
 
@@ -117,14 +126,28 @@ Spec and tooling: [agent-plugins.org](https://agent-plugins.org).
 
 ---
 
+## Why this exists (the agentic browser gap)
+
+| Stack | What the agent gets | Where it fails for coding agents |
+|---|---|---|
+| Playwright MCP / Puppeteer | New browser, clean state | No SSO cookies, no "the tab I already opened" |
+| Cloud agentic browsers | Remote browser / VM | Separate login, not your IDE-local Chrome |
+| Chrome DevTools MCP (CDP / autoConnect) | DevTools-oriented attach | Chrome 136+ refuses `--remote-debugging-port` on the **default** profile, so everyday logged-in Chrome is hard to attach without a throwaway profile |
+| **Real Browser MCP** | **Your** Chrome via MV3 extension + localhost MCP | Not for CI parallel clean runs (use Playwright there) |
+
+If you want repeatable automation in CI, use Playwright. If you want the agent inside the browser you already authenticated, use this.
+
+---
+
 ## How Others Compare
 
-| | Real Browser MCP | Playwright MCP | Chrome DevTools MCP |
-|---|---|---|---|
-| Uses your existing browser | Yes | No, launches new | Partial, needs debug port |
-| Sessions and cookies | Already there | Fresh profile | Manual setup |
-| Works behind corporate SSO | Yes | No | Depends |
-| Setup | Extension + MCP config | Headless browser | Chrome with `--remote-debugging-port` |
+| | Real Browser MCP | Playwright MCP | Chrome DevTools MCP | Cloud agentic browser |
+|---|---|---|---|---|
+| Browser | Your real Chrome | Launches new Chromium (usually) | Attach via CDP | Hosted / remote |
+| Cookies / SSO already there | Yes | No (inject or replay) | Fragile on default profile after Chrome 136 | Separate session |
+| Connection model | Extension ↔ localhost WebSocket | Playwright driver | Remote debugging / autoConnect | Vendor cloud |
+| Best fit | Live verify in IDE | CI + repeatable runs | Performance / DevTools debugging | Unattended remote browse |
+| Leaves your machine? | No control plane | Local (unless you add cloud) | Local | Yes |
 
 ---
 
@@ -283,21 +306,33 @@ npm test
 
 ## FAQ
 
+### Is this an agentic browser?
+
+No. An agentic browser usually means the agent owns a new browser (local headless or cloud). real-browser-mcp connects an MCP agent to **your existing Chrome**. Same profile, same tabs, same logins.
+
 ### Is the Chrome extension required?
 
 Yes. The MCP server alone cannot see or control Chrome. Install the [Chrome extension](https://chromewebstore.google.com/detail/real-browser-mcp/fkkimpklpgedomcheiojngaaaicmaidi), open the popup, and wait for a green connected state before calling tools.
 
-### Does it work with my existing logins?
+### Does it work with my existing logins and corporate SSO?
 
-Yes. The extension runs in your normal Chrome profile with your cookies, sessions, and local storage. That is the main reason to use real browser automation instead of a fresh headless instance.
+Yes. The extension runs in your normal Chrome profile with cookies, sessions, and local storage. That is the point: verify against the session you already set up, including SSO you completed manually.
 
 ### How is this different from Playwright MCP or browser-use?
 
-Those tools launch a separate browser with no state. You replay logins every time. Real Browser MCP attaches to the browser you already have open, including corporate SSO tabs you set up manually.
+Those stacks are built around a browser the automation tool launches (great for CI and clean repeats). Real Browser MCP is built around the browser you already have open. Use Playwright when you need deterministic runs. Use this when you need live session state.
+
+### How is this different from Chrome DevTools MCP?
+
+Chrome DevTools MCP is excellent for DevTools-style debugging and can attach via CDP / autoConnect. After Chrome 136, remote debugging on the **default** user profile is blocked, which is exactly the profile that holds your real logins. Real Browser MCP uses an extension bridge over localhost WebSocket instead of opening a debug port on that profile.
+
+### Why not a cloud agentic browser?
+
+Cloud browsers are remote machines. You re-auth, you leave the local IDE loop, and session data sits on someone else's infra. This project keeps control on localhost: MCP server ↔ extension. Page content still enters your AI client when tools return it; there is just no vendor browser SaaS in the middle.
 
 ### Agent Plugins vs MCP-only install?
 
-MCP-only (Cursor deeplink or `mcp.json`) registers the server and tools. The Agent Plugins package adds `plugin.json` and the `real-browser-control` skill so agents prefer snapshot-first workflows and know the extension must be connected. Same npm server either way.
+MCP-only (Cursor deeplink or `mcp.json`) registers the server and tools. The Agent Plugins package adds `plugin.json` and the `real-browser-control` skill so agents know when to prefer real Chrome over headless. Same npm server either way.
 
 ### Is it safe to let an agent control my real browser?
 

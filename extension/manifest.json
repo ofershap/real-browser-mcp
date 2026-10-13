@@ -15,7 +15,8 @@
     "debugger",
     "webRequest",
     "storage",
-    "alarms"
+    "alarms",
+    "tabGroups"
   ],
   "host_permissions": [
     "<all_urls>"

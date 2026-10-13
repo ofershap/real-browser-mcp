@@ -1,3 +1,5 @@
+import { createTabGroups } from './tab-groups.js';
+
 const DEFAULT_WS_PORT = 7225;
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
@@ -17,6 +19,7 @@ let networkRequests = [];
 let currentActivity = null;
 let activeTabId = null;
 let pendingDialog = null;
+const tabGroups = createTabGroups(chrome);
 
 // --- Connection Management ---
 
@@ -27,6 +30,7 @@ async function initConnection() {
   } catch {}
 
   chrome.alarms.create(KEEPALIVE_ALARM, { periodInMinutes: KEEPALIVE_INTERVAL_MIN });
+  tabGroups.ensureLoaded().catch(() => {});
   connect();
 }
 
@@ -669,12 +673,10 @@ async function handleNetwork(params) {
 }
 
 async function handleTabs(params) {
-  const { action, tabId, url } = params;
+  const { action, tabId, url, title, color } = params;
   switch (action) {
-    case 'list': {
-      const tabs = await chrome.tabs.query({ currentWindow: true });
-      return { success: true, tabs: tabs.map(t => ({ id: t.id, url: t.url, title: t.title, active: t.active })) };
-    }
+    case 'list':
+      return tabGroups.list();
     case 'create': {
       const t = await chrome.tabs.create({ url: url || 'about:blank' });
       return { success: true, tabId: t.id, url: t.url };
@@ -689,6 +691,10 @@ async function handleTabs(params) {
       await chrome.tabs.update(tabId, { active: true });
       return { success: true, focused: tabId };
     }
+    case 'name':
+      return tabGroups.name({ title, color, tabId });
+    case 'ungroup':
+      return tabGroups.ungroup({ tabId });
     default: throw new Error(`Unknown action: ${action}`);
   }
 }
